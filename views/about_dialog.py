@@ -134,7 +134,7 @@ class AboutDialog(QDialog):
             "для клиентов и администраторов. Автоматизирует процессы учёта автопарка, клиентов, "
             "договоров аренды, финансового учёта и отчётности."
         ))
-        info_layout.addWidget(self._make_info_row("Разработчик:", "Студенты МТУСИ, кафедра «Программная инженерия»"))
+        info_layout.addWidget(self._make_info_row("Разработчики:", "Студенты МТУСИ, кафедра «Программная инженерия»"))
         info_layout.addWidget(self._make_info_row("Год разработки:", "2026"))
         info_layout.addWidget(self._make_info_row("Учебная практика:", "Технологическая практика МТУСИ"))
 
@@ -1455,7 +1455,7 @@ class AboutDialog(QDialog):
         contacts_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #2563EB;")
         contacts_layout.addWidget(contacts_title)
 
-        contacts_layout.addWidget(self._make_info_row("Разработчик:", "Студенты МТУСИ"))
+        contacts_layout.addWidget(self._make_info_row("Разработчики:", "Студенты МТУСИ"))
         contacts_layout.addWidget(
             self._make_info_row("Университет:", "Московский технический университет связи и информатики (МТУСИ)"))
         contacts_layout.addWidget(self._make_info_row("Кафедра:", "«Программная инженерия»"))
