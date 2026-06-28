@@ -3,13 +3,35 @@ import os
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from database import engine, Base, SessionLocal
 from models import car, client, agreement, payment, audit_log, expense, penalty, maintenance, user
-from utils.logger import app_logger
+
+import json
+import threading
+import logging
+from pathlib import Path
+
+# === НАСТРОЙКА ЛОГИРОВАНИЯ (на уровне модуля) ===
+log_dir = Path("logs")
+log_dir.mkdir(exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/app.log', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+logger.info("=" * 60)
+logger.info("🚀 Приложение AutoRent Pro запущено")
+logger.info("=" * 60)
+
+from utils.logger import app_logger, log_security_event
 from utils.seeder import seed_database
 from utils.backup_scheduler import backup_scheduler
 from utils.auth_service import init_default_users
 from views.login_dialog import LoginDialog
-import json
-import threading
 
 def monitor_pool():
     """Мониторинг пула соединений."""
@@ -49,8 +71,11 @@ def load_settings() -> dict:
 def init_database():
     """Инициализация базы данных."""
     try:
-        app_logger.info("Создание таблиц базы данных...")
-        Base.metadata.create_all(bind=engine)
+        # Используем централизованную функцию из database.py
+        from database import init_db
+        tables = init_db()
+
+        app_logger.info(f"✅ Таблицы созданы/проверены: {len(tables)} таблиц")
 
         db_session = SessionLocal()
         try:
@@ -65,8 +90,11 @@ def init_database():
 
         finally:
             db_session.close()
+
     except Exception as e:
-        app_logger.critical(f"Ошибка инициализации БД: {str(e)}")
+        app_logger.critical(f" Ошибка инициализации БД: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise
 
 

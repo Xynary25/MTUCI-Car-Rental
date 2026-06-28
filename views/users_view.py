@@ -114,7 +114,6 @@ class UsersWidget(QWidget):
         self.table.setMinimumHeight(400)
         layout.addWidget(self.table)
 
-        # ИСПРАВЛЕНИЕ: Подключаем сигнал ПОСЛЕ создания таблицы
         self.table.itemSelectionChanged.connect(self.update_button_states)
 
         # Информация о текущем пользователе
@@ -129,7 +128,6 @@ class UsersWidget(QWidget):
     def load_data(self):
         """Загрузка списка пользователей."""
         try:
-            # Принудительно обновляем объекты из БД (ВАЖНО!)
             if hasattr(self, 'db') and self.db:
                 self.db.expire_all()
 
@@ -157,10 +155,28 @@ class UsersWidget(QWidget):
                 item_email.setFlags(item_email.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.table.setItem(row, 3, item_email)
 
-                # Роль
-                item_role = QTableWidgetItem(user.role.value)
-                item_role.setFlags(item_role.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                self.table.setItem(row, 4, item_role)
+                # Роль с цветовой индикацией
+                role_item = QTableWidgetItem(user.role.value)
+                role_item.setFlags(role_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+                # Цвета для ролей
+                if user.role.value == "superadmin":
+                    role_item.setForeground(Qt.GlobalColor.darkRed)
+                    role_item.setToolTip("👑 Главный Администратор")
+                elif user.role.value == "admin":
+                    role_item.setForeground(Qt.GlobalColor.darkBlue)
+                    role_item.setToolTip("🔧 Администратор")
+                elif user.role.value == "manager":
+                    role_item.setForeground(Qt.GlobalColor.darkMagenta)
+                    role_item.setToolTip("👨‍💼 Менеджер")
+                elif user.role.value == "operator":
+                    role_item.setForeground(Qt.GlobalColor.darkGreen)
+                    role_item.setToolTip("👤 Оператор")
+                else:
+                    role_item.setForeground(Qt.GlobalColor.darkYellow)
+                    role_item.setToolTip("👤 Пользователь")
+
+                self.table.setItem(row, 4, role_item)
 
                 # Статус (БЕЗ зачеркивания)
                 status_item = QTableWidgetItem("✅ Активен" if user.is_active else "❌ Отключен")
@@ -264,7 +280,6 @@ class UsersWidget(QWidget):
 
         dialog = UserEditDialog(user=user, current_admin=self.current_user, parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            # ✅ ИСПРАВЛЕНИЕ: обновляем данные после успешного сохранения
             self.load_data()
             QMessageBox.information(self, "Успех", "Данные обновлены")
 
@@ -305,7 +320,6 @@ class UsersWidget(QWidget):
             self.delete_btn.setEnabled(False)
             return
 
-        # ИСПРАВЛЕНИЕ: Активируем кнопки в зависимости от статуса
         self.deactivate_btn.setEnabled(user.is_active)  # Деактивировать можно только активного
         self.activate_btn.setEnabled(not user.is_active)  # Активировать можно только неактивного
         self.edit_btn.setEnabled(True)
@@ -396,7 +410,7 @@ class UsersWidget(QWidget):
                 QMessageBox.critical(self, "Ошибка", result["error"])
 
     def delete_user(self):
-        """Удаление пользователя."""
+        """Мягкое удаление пользователя (деактивация)."""
         selected = self.table.selectedItems()
         if not selected:
             QMessageBox.warning(self, "Внимание", "Выберите пользователя")
@@ -413,17 +427,25 @@ class UsersWidget(QWidget):
             QMessageBox.warning(self, "Ошибка", "Нельзя удалить самого себя")
             return
 
+        if user.username == "superadmin":
+            QMessageBox.critical(self, "Ошибка", "Нельзя удалить Главного Администратора")
+            return
+
         reply = QMessageBox.warning(
             self, "Подтверждение удаления",
             f"Вы уверены, что хотите УДАЛИТЬ пользователя {user.username}?\n\n"
-            f"Это действие необратимо!",
+            f"Пользователь будет деактивирован (не удален из БД)",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            result = self.auth_service.delete_user(user_id, self.current_user)
+            result = self.auth_service.update_user(
+                user_id,
+                {"is_active": False},
+                self.current_user
+            )
             if result["success"]:
-                QMessageBox.information(self, "Успех", f"Пользователь {user.username} удалён")
+                QMessageBox.information(self, "Успех", f"Пользователь {user.username} деактивирован")
                 self.load_data()
             else:
                 QMessageBox.critical(self, "Ошибка", result["error"])

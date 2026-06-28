@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обращения в поддержку - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: #bfdbfe;
+            transform: translateY(-2px);
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-resolved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-resolved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">📩 Обращения в поддержку</div>
+        <div class="nav-links">
+            <a href="/admin" class="nav-link">👥 Пользователи</a>
+            <a href="/admin/return-requests" class="nav-link">🔄 Заявки на возврат</a>
+            <a href="/" class="nav-link">🏠 Главная</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 Все обращения</div>
+
+        {% if requests %}
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Тема</th>
+                <th>Описание</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>#{{ req.id }}</td>
+                <td>{{ req.client_name }}</td>
+                <td>{{ req.subject }}</td>
+                <td>{{ req.description[:50] }}...</td>
+                <td>{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    {% if req.status == 'pending' %}
+                    <span class="status-badge status-pending">⏳ Ожидает</span>
+                    {% elif req.status == 'in_progress' %}
+                    <span class="status-badge status-in-progress">🔄 В работе</span>
+                    {% elif req.status == 'resolved' %}
+                    <span class="status-badge status-resolved">✅ Решено</span>
+                    {% else %}
+                    <span class="status-badge">{{ req.status.value }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/admin/support-requests/{{ req.id }}" class="btn btn-primary" style="margin-right: 5px;">
+                        👁️ Подробнее
+                    </a>
+                    {% if req.status.value == 'pending' %}
+                    <button type="button" class="btn btn-primary"
+                            onclick="openReplyModal({{ req.id }}, '{{ req.client_name }}', '{{ req.subject }}')">
+                        ✍️ Ответить
+                    </button>
+                    {% elif req.status.value == 'in_progress' %}
+                    <a href="/admin/support-requests/{{ req.id }}" class="btn btn-secondary">
+                        📝 Продолжить
+                    </a>
+                    {% else %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>Нет обращений в поддержку</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно для быстрого ответа -->
+<div class="modal" id="replyModal">
+    <div class="modal-content">
+        <h3>📤 Ответ пользователю</h3>
+        <form method="POST" action="/admin/support-requests/reply">
+            <input type="hidden" name="request_id" id="modal_request_id">
+            <div class="form-group">
+                <label>Клиент</label>
+                <input type="text" id="modal_client_name" readonly
+                       style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; background: #f8fafc;">
+            </div>
+            <div class="form-group">
+                <label>Тема</label>
+                <input type="text" id="modal_subject" readonly
+                       style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; background: #f8fafc;">
+            </div>
+            <div class="form-group">
+                <label>Ваш ответ *</label>
+                <textarea name="response" rows="5" required
+                          placeholder="Введите ваш ответ пользователю..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeReplyModal()">Отмена</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">📤 Отправить ответ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReplyModal(requestId, clientName, subject) {
+        document.getElementById('modal_request_id').value = requestId;
+        document.getElementById('modal_client_name').value = clientName;
+        document.getElementById('modal_subject').value = subject;
+        document.getElementById('replyModal').classList.add('active');
+    }
+
+    function closeReplyModal() {
+        document.getElementById('replyModal').classList.remove('active');
+    }
+
+    // Закрытие модального окна по клику вне его
+    document.getElementById('replyModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeReplyModal();
+        }
+    });
+</script>
+</body>
+</html>

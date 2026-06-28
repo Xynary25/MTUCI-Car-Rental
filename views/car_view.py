@@ -21,6 +21,22 @@ class CarDialog(QDialog):
         self.car_data = car_data
         self.image_path = car_data.get('image_path') if car_data else None
 
+        # === ЛОГИРОВАНИЕ ===
+        print(f"\n{'=' * 60}")
+        print(f"🚗 ОТКРЫТИЕ ДИАЛОГА РЕДАКТИРОВАНИЯ АВТО")
+        print(f"{'=' * 60}")
+        if car_data:
+            print(f"📋 Данные автомобиля:")
+            print(f"   ID: {car_data.get('id')}")
+            print(f"   Марка: {car_data.get('brand')}")
+            print(f"   Модель: {car_data.get('model')}")
+            print(f"   Гос. номер: {car_data.get('license_plate')}")
+            print(f"   image_path из БД: '{car_data.get('image_path')}'")
+            print(f"   self.image_path после присвоения: '{self.image_path}'")
+        else:
+            print(f"📋 Создание нового автомобиля (car_data = None)")
+        print(f"{'=' * 60}\n")
+
         # Основной layout с прокруткой
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(15)
@@ -92,11 +108,9 @@ class CarDialog(QDialog):
             self.rate_input.setValue(car_data.get("daily_rate", 3000))
             self.desc_input.setText(car_data.get("description", ""))
 
-            # ИСПРАВЛЕНИЕ: заполняем все поля, которые раньше оставались дефолтными
             self.power_input.setValue(car_data.get("engine_power", 150))
             self.seats_input.setValue(car_data.get("seats", 5))
 
-            # Для QComboBox используем setCurrentText — он сам найдёт нужный элемент
             transmission = car_data.get("transmission", "Автомат")
             if self.transmission_combo.findText(transmission) != -1:
                 self.transmission_combo.setCurrentText(transmission)
@@ -109,29 +123,12 @@ class CarDialog(QDialog):
             if self.body_combo.findText(body) != -1:
                 self.body_combo.setCurrentText(body)
 
-            # Корректная работа с boolean
             is_avail = car_data.get("is_available", True)
             if isinstance(is_avail, str):
                 is_avail = is_avail.lower() in ["true", "да", "1", "✓"]
             self.available_check.setChecked(bool(is_avail))
 
             self.image_path = car_data.get("image_path")
-
-            # === УМНАЯ ЗАГРУЗКА ФОТО ===
-            if not self.image_path:  # Если фото не задано вручную
-                auto_photo = find_car_image(
-                    license_plate=car_data.get("license_plate"),
-                    brand=car_data.get("brand"),
-                    model=car_data.get("model")
-                )
-                if auto_photo:
-                    self.image_path = auto_photo
-                    # ВАЖНО: Создаем photo_preview если его нет
-                    if hasattr(self, 'photo_preview'):
-                        self.update_photo_preview(auto_photo)
-            elif self.image_path:
-                if hasattr(self, 'photo_preview'):
-                    self.update_photo_preview(self.image_path)
 
         layout.addRow("<b>Основные данные</b>", QLabel())
         layout.addRow("Марка:", self.brand_input)
@@ -154,7 +151,7 @@ class CarDialog(QDialog):
         layout.addRow("Статус:", self.available_check)
 
         # Кнопка выбора фото
-        photo_group = QGroupBox(" Фотография автомобиля")
+        photo_group = QGroupBox("Фотография автомобиля")
         photo_layout = QVBoxLayout(photo_group)
 
         self.photo_btn = QPushButton("Выбрать фотографию")
@@ -162,7 +159,7 @@ class CarDialog(QDialog):
         self.photo_btn.clicked.connect(self.select_photo)
         photo_layout.addWidget(self.photo_btn)
 
-        # Создаем photo_preview - ЭТО КЛЮЧЕВОЙ ЭЛЕМЕНТ!
+        # Создаем photo_preview
         self.photo_preview = QLabel("Фото не выбрано")
         self.photo_preview.setObjectName("photo_preview_label")
         self.photo_preview.setMinimumHeight(150)
@@ -178,8 +175,49 @@ class CarDialog(QDialog):
         """)
         photo_layout.addWidget(self.photo_preview)
 
+        # === УМНАЯ ЗАГРУЗКА ФОТО ===
+        from utils.path_utils import url_path_to_absolute, file_exists, find_image_in_images_dir
+
+        # Если image_path задан из БД, конвертируем его
+        if self.image_path:
+            absolute_path = url_path_to_absolute(self.image_path)
+            print(f"🔍 Конвертация пути:")
+            print(f"   Исходный: {self.image_path}")
+            print(f"   Абсолютный: {absolute_path}")
+            print(f"   Файл существует: {os.path.exists(absolute_path)}")
+
+            if os.path.exists(absolute_path):
+                self.image_path = absolute_path
+            else:
+                # Файл не найден по пути из БД, ищем в images/
+                print(f"️ Файл не найден, ищем в images/")
+                auto_photo = find_image_in_images_dir(
+                    license_plate=car_data.get("license_plate"),
+                    brand=car_data.get("brand"),
+                    model=car_data.get("model")
+                )
+                if auto_photo:
+                    self.image_path = auto_photo
+                    print(f"✅ Найдено фото в images/: {auto_photo}")
+                else:
+                    self.image_path = None
+                    print(f"❌ Фото не найдено")
+        else:
+            # image_path не задан, ищем автоматически
+            auto_photo = find_image_in_images_dir(
+                license_plate=car_data.get("license_plate"),
+                brand=car_data.get("brand"),
+                model=car_data.get("model")
+            )
+            if auto_photo:
+                self.image_path = auto_photo
+                print(f"✅ Автоматически найдено фото: {auto_photo}")
+
         if self.image_path and os.path.exists(self.image_path):
             self.update_photo_preview(self.image_path)
+            print(f"✅ Превью обновлено")
+        else:
+            print(f"⚠️ Превью не обновлено (файл не найден)")
 
         layout.addRow(photo_group)
 
@@ -214,10 +252,49 @@ class CarDialog(QDialog):
         if not hasattr(self, 'photo_preview'):
             return  # Защита если виджет еще не создан
 
-        pixmap = QPixmap(path)
+        if not path:
+            self.photo_preview.setText("Фото не выбрано")
+            self.photo_preview.setStyleSheet("""
+                QLabel {
+                    padding: 15px;
+                    background-color: #F1F5F9;
+                    border-radius: 8px;
+                    border: 2px dashed #94A3B8;
+                    color: #64748B;
+                }
+            """)
+            return
+
+        from utils.path_utils import url_path_to_absolute, file_exists
+
+        absolute_path = url_path_to_absolute(path)
+
+        print(f"🔍 Конвертация пути:")
+        print(f"   Исходный: {path}")
+        print(f"   Абсолютный: {absolute_path}")
+        print(f"   Файл существует: {os.path.exists(absolute_path)}")
+
+        if not os.path.exists(absolute_path):
+            self.photo_preview.setText(f"⚠️ Файл не найден:\n{path}")
+            self.photo_preview.setStyleSheet("""
+                QLabel {
+                    padding: 15px;
+                    background-color: #FEF3C7;
+                    border-radius: 8px;
+                    border: 2px dashed #F59E0B;
+                    color: #92400E;
+                    font-size: 12px;
+                }
+            """)
+            return
+
+        pixmap = QPixmap(absolute_path)
         if not pixmap.isNull():
-            scaled_pixmap = pixmap.scaled(200, 150, Qt.AspectRatioMode.KeepAspectRatio,
-                                          Qt.TransformationMode.SmoothTransformation)
+            scaled_pixmap = pixmap.scaled(
+                200, 150,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
             self.photo_preview.setPixmap(scaled_pixmap)
             self.photo_preview.setText("")
             self.photo_preview.setStyleSheet("""
@@ -228,8 +305,10 @@ class CarDialog(QDialog):
                     border: 2px solid #2563EB;
                 }
             """)
+            print(f"✅ Фото загружено успешно")
         else:
-            self.photo_preview.setText("Ошибка загрузки фото")
+            self.photo_preview.setText("❌ Ошибка загрузки фото")
+            print(f"❌ QPixmap не смог загрузить файл")
 
     def get_data(self) -> dict:
         return {
@@ -404,7 +483,6 @@ class CarWidget(QWidget):
         dialog = CarDialog(self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
-            # ИСПРАВЛЕНИЕ: передаём весь словарь data, а не отдельные поля
             result = self.controller.add_car(data)
             if result["success"]:
                 self.load_data()
@@ -433,7 +511,6 @@ class CarWidget(QWidget):
         dialog = CarDialog(self, car_data)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
-            # ИСПРАВЛЕНИЕ: передаём car_id и весь словарь data
             result = self.controller.update_car(car_id, data)
             if result["success"]:
                 self.load_data()

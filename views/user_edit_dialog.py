@@ -95,6 +95,68 @@ class UserEditDialog(QDialog):
 
         content_layout.addWidget(main_group)
 
+        # === Группа: Паспортные данные (для клиентов) ===
+        if not self.is_edit_mode or self.user.role == UserRole.OPERATOR or self.user.role == UserRole.USER:
+            passport_group = QGroupBox("📄 Паспортные данные")
+            passport_layout = QGridLayout(passport_group)
+            passport_layout.setSpacing(10)
+
+            # Серия и номер
+            passport_series_label = QLabel("Серия:")
+            self.passport_series_input = QLineEdit()
+            self.passport_series_input.setMaxLength(4)
+            self.passport_series_input.setPlaceholderText("4501")
+            self.passport_series_input.setMinimumHeight(40)
+
+            passport_number_label = QLabel("Номер:")
+            self.passport_number_input = QLineEdit()
+            self.passport_number_input.setMaxLength(6)
+            self.passport_number_input.setPlaceholderText("123456")
+            self.passport_number_input.setMinimumHeight(40)
+
+            passport_layout.addWidget(passport_series_label, 0, 0)
+            passport_layout.addWidget(self.passport_series_input, 0, 1)
+            passport_layout.addWidget(passport_number_label, 0, 2)
+            passport_layout.addWidget(self.passport_number_input, 0, 3)
+
+            # Дата выдачи
+            passport_issue_date_label = QLabel("Дата выдачи:")
+            self.passport_issue_date_input = QLineEdit()
+            self.passport_issue_date_input.setPlaceholderText("дд.мм.гггг")
+            self.passport_issue_date_input.setMinimumHeight(40)
+
+            passport_layout.addWidget(passport_issue_date_label, 1, 0)
+            passport_layout.addWidget(self.passport_issue_date_input, 1, 1, 1, 3)
+
+            # Кем выдан
+            passport_issue_place_label = QLabel("Кем выдан:")
+            self.passport_issue_place_input = QLineEdit()
+            self.passport_issue_place_input.setPlaceholderText("УФМС России по г. Москве")
+            self.passport_issue_place_input.setMinimumHeight(40)
+
+            passport_layout.addWidget(passport_issue_place_label, 2, 0)
+            passport_layout.addWidget(self.passport_issue_place_input, 2, 1, 1, 3)
+
+            content_layout.addWidget(passport_group)
+
+            # Заполняем данные при редактировании (БЕЗОПАСНАЯ ВЕРСИЯ)
+            if self.is_edit_mode:
+                from models.client import Client
+                client = self.db.query(Client).filter(Client.full_name == self.user.full_name).first()
+                if client:
+                    self.passport_series_input.setText(client.passport_series or "")
+                    self.passport_number_input.setText(client.passport_number or "")
+                    # БЕЗОПАСНАЯ проверка наличия атрибута
+                    if hasattr(client, 'passport_issue_date') and client.passport_issue_date:
+                        try:
+                            self.passport_issue_date_input.setText(
+                                client.passport_issue_date.strftime("%d.%m.%Y")
+                            )
+                        except:
+                            pass
+                    if hasattr(client, 'passport_issue_place'):
+                        self.passport_issue_place_input.setText(client.passport_issue_place or "")
+
         # === Группа: Безопасность ===
         security_group = QGroupBox("🔐 Безопасность")
         security_layout = QVBoxLayout(security_group)
@@ -182,16 +244,18 @@ class UserEditDialog(QDialog):
 
         if self.current_admin and self.current_admin.username == "superadmin":
             self.role_combo.addItems([
-                " Главный Администратор (полный доступ)",
+                "👑 Главный Администратор (полный доступ)",
                 "🔧 Администратор (полный доступ)",
                 "👨‍💼 Менеджер (управление договорами)",
-                "👤 Оператор (только просмотр и договоры)"
+                "👤 Оператор (только просмотр и договоры)",
+                "👤 Пользователь (базовый доступ)"
             ])
         else:
             self.role_combo.addItems([
                 "🔧 Администратор (полный доступ)",
                 "👨‍💼 Менеджер (управление договорами)",
-                "👤 Оператор (только просмотр и договоры)"
+                "👤 Оператор (только просмотр и договоры)",
+                "👤 Пользователь (базовый доступ)"
             ])
 
         self.role_combo.setMinimumHeight(40)
@@ -339,6 +403,40 @@ class UserEditDialog(QDialog):
                 for perm, cb in self.permission_checks.items():
                     cb.setChecked(perm in custom_perms)
 
+        # Загрузка паспортных данных
+        if hasattr(self, 'passport_series_input') and not self.is_superadmin_edit:
+            from models.client import Client
+
+            # Ищем клиента по email или ФИО
+            client = None
+            if self.user.email:
+                client = self.db.query(Client).filter(Client.email == self.user.email).first()
+
+            if not client:
+                client = self.db.query(Client).filter(Client.full_name == self.user.full_name).first()
+
+            if client:
+                try:
+                    if hasattr(client, 'passport_series'):
+                        self.passport_series_input.setText(client.passport_series or "")
+                    if hasattr(client, 'passport_number'):
+                        self.passport_number_input.setText(client.passport_number or "")
+                    if hasattr(client, 'passport_issue_place'):
+                        self.passport_issue_place_input.setText(client.passport_issue_place or "")
+
+                    # Дата выдачи (безопасная загрузка)
+                    if hasattr(client, 'passport_issue_date') and client.passport_issue_date:
+                        try:
+                            self.passport_issue_date_input.setText(
+                                client.passport_issue_date.strftime("%d.%m.%Y")
+                            )
+                        except:
+                            pass
+
+                    print(f"✅ Паспортные данные загружены для клиента ID {client.id}")
+                except Exception as e:
+                    print(f"⚠️ Ошибка загрузки паспортных данных: {e}")
+
     def select_all_permissions(self):
         """Выбрать все права."""
         for cb in self.permission_checks.values():
@@ -402,11 +500,17 @@ class UserEditDialog(QDialog):
                 0: UserRole.SUPER_ADMIN,
                 1: UserRole.ADMIN,
                 2: UserRole.MANAGER,
-                3: UserRole.OPERATOR
+                3: UserRole.OPERATOR,
+                4: UserRole.USER
             }
             is_superadmin = (role_index == 0)
         else:
-            role_map = {0: UserRole.ADMIN, 1: UserRole.MANAGER, 2: UserRole.OPERATOR}
+            role_map = {
+                0: UserRole.ADMIN,
+                1: UserRole.MANAGER,
+                2: UserRole.OPERATOR,
+                3: UserRole.USER
+            }
             is_superadmin = False
 
         role = role_map.get(role_index, UserRole.OPERATOR)
@@ -427,52 +531,98 @@ class UserEditDialog(QDialog):
         if not is_superadmin and hasattr(self, 'permission_checks'):
             selected_perms = [perm for perm, cb in self.permission_checks.items() if cb.isChecked()]
 
-        if self.is_edit_mode:
-            data = {
-                "username": username,
-                "full_name": fullname,
-                "email": email if email else None,
-                "role": role.value,
-                "is_active": is_active,
-            }
+            if self.is_edit_mode:
+                data = {
+                    "username": username,
+                    "full_name": fullname,
+                    "email": email if email else None,
+                    "role": role.value,
+                    "is_active": is_active,
+                }
 
-            logger.info(f"Данные для обновления: {list(data.keys())}")
+                if password:
+                    data["password"] = password
 
-            if password:
-                logger.info("ПАРОЛЬ БУДЕТ ОБНОВЛЕН!")
-                data["password"] = password
+                if selected_perms:
+                    data["custom_permissions"] = selected_perms
+                elif not is_superadmin:
+                    data["custom_permissions"] = []
+
+                result = self.auth_service.update_user(self.user.id, data, self.current_admin)
+
+                # Сохраняем паспортные данные клиента
+                if result["success"]:
+                    try:
+                        from models.client import Client
+                        from datetime import datetime
+
+                        # Ищем клиента по email или ФИО
+                        client = None
+                        if email:
+                            client = self.db.query(Client).filter(Client.email == email).first()
+
+                        if not client:
+                            client = self.db.query(Client).filter(Client.full_name == fullname).first()
+
+                        if not client:
+                            # Создаем нового клиента
+                            client = Client(
+                                full_name=fullname,
+                                passport_series=self.passport_series_input.text().strip() if hasattr(self,
+                                                                                                     'passport_series_input') else "",
+                                passport_number=self.passport_number_input.text().strip() if hasattr(self,
+                                                                                                     'passport_number_input') else "",
+                                phone="",
+                                email=email,
+                                passport_issue_date=None,
+                                passport_issue_place=""
+                            )
+                            self.db.add(client)
+                            print(f"✅ Создан новый клиент: {fullname}")
+                        else:
+                            if hasattr(self, 'passport_series_input'):
+                                client.passport_series = self.passport_series_input.text().strip()
+                            if hasattr(self, 'passport_number_input'):
+                                client.passport_number = self.passport_number_input.text().strip()
+                            if hasattr(self, 'passport_issue_place_input'):
+                                client.passport_issue_place = self.passport_issue_place_input.text().strip()
+
+                            # Дата выдачи (с безопасной проверкой)
+                            if hasattr(self, 'passport_issue_date_input'):
+                                date_text = self.passport_issue_date_input.text().strip()
+                                if date_text:
+                                    try:
+                                        client.passport_issue_date = datetime.strptime(date_text, "%d.%m.%Y").date()
+                                    except Exception as e:
+                                        print(f"⚠️ Неверный формат даты: {date_text} - {e}")
+
+                            print(f"✅ Обновлен клиент ID {client.id}: {fullname}")
+
+                        self.db.commit()
+                        print("✅ Паспортные данные сохранены в БД")
+                    except Exception as e:
+                        print(f"⚠️ Ошибка сохранения паспортных данных: {e}")
+                        import traceback
+                        traceback.print_exc()
             else:
-                logger.info("ПАРОЛЬ НЕ МЕНЯЕТСЯ")
+                result = self.auth_service.create_user(
+                    username=username,
+                    password=password,
+                    full_name=fullname,
+                    email=email if email else None,
+                    role=role,
+                    created_by=self.current_admin,
+                    custom_permissions=selected_perms if selected_perms else None
+                )
 
-            if selected_perms:
-                data["custom_permissions"] = selected_perms
-            elif not is_superadmin:
-                data["custom_permissions"] = []
-
-            logger.info(f"Вызываем update_user с ID: {self.user.id}")
-            result = self.auth_service.update_user(self.user.id, data, self.current_admin)
-        else:
-            result = self.auth_service.create_user(
-                username=username,
-                password=password,
-                full_name=fullname,
-                email=email if email else None,
-                role=role,
-                created_by=self.current_admin,
-                custom_permissions=selected_perms if selected_perms else None
-            )
-
-        logger.info(f"РЕЗУЛЬТАТ: {result}")
-        logger.info("=" * 60)
-
-        if result["success"]:
-            QMessageBox.information(
-                self, "Успех",
-                "Пользователь успешно обновлён!" if self.is_edit_mode else "Пользователь успешно создан!"
-            )
-            self.accept()
-        else:
-            QMessageBox.critical(self, "Ошибка", result["error"])
+            if result["success"]:
+                QMessageBox.information(
+                    self, "Успех",
+                    "Пользователь успешно обновлён!" if self.is_edit_mode else "Пользователь успешно создан!"
+                )
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Ошибка", result["error"])
 
     def closeEvent(self, event):
         self.db.close()

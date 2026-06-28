@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обращение #{{ support_request.id }} - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-resolved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .description-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .response-box {
+            background: #e0e7ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4338ca;
+        }
+
+        .response-label {
+            font-weight: bold;
+            color: #4338ca;
+            margin-bottom: 10px;
+        }
+
+        .attachment-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin: 8px 0;
+            gap: 12px;
+        }
+
+        .attachment-icon {
+            font-size: 24px;
+        }
+
+        .attachment-info {
+            flex: 1;
+        }
+
+        .attachment-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 3px;
+        }
+
+        .attachment-size {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .attachment-download {
+            padding: 6px 12px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .attachment-download:hover {
+            background: #2563eb;
+        }
+
+        .attachment-image {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .attachment-image img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">📩 Обращение #{{ support_request.id }}</div>
+        <a href="/admin/support-requests" class="btn btn-secondary">← Назад к обращениям</a>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Информация об обращении</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">КЛИЕНТ</div>
+                <div class="info-value">{{ support_request.client_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">СТАТУС</div>
+                <div class="info-value">
+                    {% if support_request.status.value == 'pending' %}
+                    <span class="status-badge status-pending">⏳ Ожидает</span>
+                    {% elif support_request.status.value == 'in_progress' %}
+                    <span class="status-badge status-in-progress">🔄 В работе</span>
+                    {% elif support_request.status.value == 'resolved' %}
+                    <span class="status-badge status-resolved">✅ Решено</span>
+                    {% else %}
+                    <span class="status-badge">{{ support_request.status.value }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">ДАТА СОЗДАНИЯ</div>
+                <div class="info-value">{{ support_request.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">ПОСЛЕДНЕЕ ОБНОВЛЕНИЕ</div>
+                <div class="info-value">{{ support_request.updated_at.strftime('%d.%m.%Y %H:%M') if
+                    support_request.updated_at else '—' }}
+                </div>
+            </div>
+            <div class="info-item" style="grid-column: span 2;">
+                <div class="info-label">ТЕМА</div>
+                <div class="info-value">{{ support_request.subject }}</div>
+            </div>
+        </div>
+
+        <div class="info-item" style="margin-top: 20px;">
+            <div class="info-label">ОПИСАНИЕ ПРОБЛЕМЫ</div>
+            <div class="description-box">{{ support_request.description }}</div>
+        </div>
+
+        {% if support_request.admin_response %}
+        <div class="response-box">
+            <div class="response-label">📨 Ответ поддержки:</div>
+            <p style="color: #1e293b; white-space: pre-wrap;">{{ support_request.admin_response }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Форма ответа (только если обращение НЕ решено) -->
+        {% if support_request.status.value != 'resolved' %}
+        <div class="response-form">
+            <h3>✍️ Ответить на обращение</h3>
+            <form action="/admin/support-requests/{{ support_request.id }}/reply" method="post">
+                <div class="form-group">
+                    <label for="response">Текст ответа:</label>
+                    <textarea
+                            id="response"
+                            name="response"
+                            rows="6"
+                            placeholder="Введите ваш ответ пользователю..."
+                            required
+                    ></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        📤 Отправить ответ
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+            ✅ Обращение закрыто как решённое
+        </div>
+        {% endif %}
+
+        <!-- Кнопка закрытия как решённое (только если ещё не решено) -->
+        {% if support_request.status.value != 'resolved' %}
+        <form method="POST" action="/admin/support-requests/{{ support_request.id }}/resolve" style="display: inline;">
+            <button type="submit" class="btn btn-success">
+                ✅ Закрыть как решённое
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- ОТОБРАЖЕНИЕ ПРИКРЕПЛЕННЫХ ФАЙЛОВ -->
+        {% if support_request.description and '[Прикреплен файл]:' in support_request.description %}
+        <div class="attachment-box">
+            <div style="font-weight: bold; color: #1e293b; margin-bottom: 10px;">📎 Прикрепленные файлы:</div>
+            {% set lines = support_request.description.split('\n') %}
+            {% for line in lines %}
+            {% if '[Прикреплен файл]:' in line %}
+            {% set file_path = line.split('[Прикреплен файл]:')[1].strip() %}
+            {% set file_name = file_path.split('/')[-1] %}
+            <div class="attachment-item">
+                <div class="attachment-icon">
+                    {% if file_name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')) %}
+                    🖼️
+                    {% elif file_name.lower().endswith('.pdf') %}
+                    📄
+                    {% elif file_name.lower().endswith(('.doc', '.docx')) %}
+                    📝
+                    {% else %}
+                    📎
+                    {% endif %}
+                </div>
+                <div class="attachment-info">
+                    <div class="attachment-name">{{ file_name }}</div>
+                    <div class="attachment-size">{{ file_path }}</div>
+                </div>
+                <a href="{{ file_path }}" class="attachment-download" download>⬇️ Скачать</a>
+            </div>
+
+            {% if file_name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')) %}
+            <div class="attachment-image">
+                <img src="{{ file_path }}" alt="{{ file_name }}">
+            </div>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+</body>
+</html>

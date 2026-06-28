@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: #bfdbfe;
+        }
+
+        .nav-link-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .nav-link-primary:hover {
+            opacity: 0.9;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            position: relative;
+        }
+
+        .badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <div class="logo">⚙️ Админ-панель</div>
+            <div class="logo-sub">Управление пользователями</div>
+        </div>
+        <div class="nav-buttons">
+            <a href="/admin/support-requests" class="btn btn-primary">
+                📩 Обращения
+            </a>
+            <a href="/admin/return-requests" class="btn btn-primary">
+                🔄 Заявки на возврат
+                {% if pending_count > 0 %}
+                <span class="badge">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+            <a href="/admin/cars" class="btn btn-secondary">🚗 Автопарк</a>
+            <a href="/" class="btn btn-secondary">🏠 Главная</a>
+            <a href="/auth/logout" class="btn btn-danger">🚪 Выйти</a>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-title">👥 Все пользователи системы</div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>ФИО</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Статус</th>
+                <th>Дата регистрации</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.email or '—' }}</td>
+                <td>
+                    {% if user.role == 'superadmin' %}
+                    👑 Главный Админ
+                    {% elif user.role == 'admin' %}
+                    🔧 Администратор
+                    {% elif user.role == 'manager' %}
+                    👨‍💼 Менеджер
+                    {% else %}
+                    👤 Оператор
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                    <span class="status-active">✅ Активен</span>
+                    {% else %}
+                    <span class="status-inactive">❌ Заблокирован</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.created_at }}</td>
+                <td>
+                    {% if user.username != 'super' %}
+                    <div style="display: flex; gap: 5px;">
+                        <a href="/admin/user/{{ user.id }}" class="btn btn-primary"
+                           style="padding: 6px 12px; font-size: 12px; text-decoration: none;">👁️ Подробнее</a>
+                        <form method="POST" action="/admin/user/{{ user.id }}/toggle" style="display: inline;">
+                            {% if user.is_active %}
+                            <button type="submit" class="btn btn-warning"
+                                    onclick="return confirm('Заблокировать пользователя?')">🔒 Заблокировать
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-success"
+                                    onclick="return confirm('Разблокировать пользователя?')">✅ Разблокировать
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                    {% else %}
+                    <a href="/admin/user/{{ user.id }}" class="btn btn-primary"
+                       style="padding: 6px 12px; font-size: 12px; text-decoration: none;">👁️ Подробнее</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -113,7 +113,6 @@ class BackupScheduler:
                 app_logger.error(f"Неизвестная частота бэкапов: {frequency}")
                 return False
 
-            # Добавление задачи
             self.scheduler.add_job(
                 self._perform_backup,
                 trigger=trigger,

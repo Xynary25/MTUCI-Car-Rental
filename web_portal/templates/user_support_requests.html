@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои обращения - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .request-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .request-title {
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .request-date {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .request-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-resolved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .response-box {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .response-label {
+            font-weight: bold;
+            color: #4338ca;
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">📩 Мои обращения в поддержку</div>
+        <a href="/profile" class="btn btn-primary">← Назад в профиль</a>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 История обращений</div>
+
+        {% if requests %}
+        {% for req in requests %}
+        <div class="request-card" onclick="window.location.href='/user/support-requests/{{ req.id }}'"
+             style="cursor: pointer;">
+            <div class="request-header">
+                <div class="request-title">#{{ req.id }} - {{ req.subject }}</div>
+                <div class="request-date">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            <p style="color: #475569; margin-bottom: 10px;">{{ req.description[:100] }}...</p>
+
+            <div class="request-status
+        {% if req.status.value == 'pending' %}status-pending
+        {% elif req.status.value == 'in_progress' %}status-in-progress
+        {% else %}status-resolved{% endif %}">
+                {% if req.status.value == 'pending' %}
+                ⏳ Ожидает
+                {% elif req.status.value == 'in_progress' %}
+                🔄 В работе
+                {% elif req.status.value == 'resolved' %}
+                ✅ Решено
+                {% else %}
+                {{ req.status.value }}
+                {% endif %}
+            </div>
+
+            {% if req.admin_response %}
+            <div class="response-box">
+                <div class="response-label">📨 Ответ поддержки:</div>
+                <p style="color: #1e293b;">{{ req.admin_response[:100] }}...</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #64748b;">
+            У вас пока нет обращений
+        </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

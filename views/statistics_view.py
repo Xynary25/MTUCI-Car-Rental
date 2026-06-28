@@ -129,7 +129,6 @@ class StatisticsWidget(QWidget):
 
         btn_layout = QHBoxLayout()
 
-        # Кнопка добавления расхода — только при наличии права create_expense
         if self.current_user and self.current_user.has_permission('create_expense'):
             self.add_expense_btn = QPushButton("➕ Добавить расход")
             self.add_expense_btn.setMinimumHeight(45)
@@ -181,7 +180,7 @@ class StatisticsWidget(QWidget):
             self.expense_table.setItem(row, 3, QTableWidgetItem(exp.description or " "))
             self.expense_table.setItem(row, 4, QTableWidgetItem(str(exp.amount)))
 
-        # Таблица топа автомобилей - ИСПРАВЛЕНИЕ: сортировка по количеству аренд (убывание), затем по доходу (убывание)
+        # Таблица топа автомобилей: сортировка по количеству аренд (убывание), затем по доходу (убывание)
         top_cars = (
             self.db.query(
                 Car.brand, Car.model, Car.license_plate,
@@ -231,7 +230,6 @@ class StatisticsWidget(QWidget):
                 self.db.add(expense)
                 self.db.commit()
 
-                # ЛОГИРОВАНИЕ: Добавление расхода
                 from utils.system_utils import log_action
                 from models.audit_log import ActionType
 

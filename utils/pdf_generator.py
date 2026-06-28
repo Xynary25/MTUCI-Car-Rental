@@ -161,7 +161,7 @@ def generate_multiple_agreements_pdf(agreements_list: list, penalties_list: list
                 story.append(Paragraph("<b>ШТРАФЫ И ДОПОЛНИТЕЛЬНЫЕ ПЛАТЕЖИ</b>", heading_style))
                 story.append(Spacer(1, 0.2 * cm))
 
-                # ИСПРАВЛЕНИЕ: используем Table вместо HTML
+                # используем Table вместо HTML
                 # Ширина таблицы: 17см (A4 - отступы)
                 # Колонки: №(0.8), Тип(2.8), Описание(6.5), Сумма(2.2), Статус(2.2)
                 col_widths = [0.8 * cm, 2.8 * cm, 6.5 * cm, 2.2 * cm, 2.2 * cm]

@@ -3,7 +3,6 @@ from models.audit_log import AuditLog, ActionType
 from sqlalchemy import text
 
 def fix_audit_logs():
-    """Исправление записей в журнале аудита."""
     db = SessionLocal()
     try:
         # Удаляем все записи с некорректными action_type

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Техническое обслуживание - ДрайвКонтроль</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #1e293b; }
+        .nav-links { display: flex; gap: 10px; }
+        .nav-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-link:hover { background: #bfdbfe; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #dc2626; }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .car-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            background: white;
+        }
+        .car-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        .car-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .car-body { padding: 20px; }
+        .car-name { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 8px; }
+        .car-info { color: #64748b; font-size: 13px; margin-bottom: 10px; }
+        .car-plate {
+            display: inline-block;
+            background: #1e293b;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .status-maintenance { background: #fef3c7; color: #92400e; }
+        .status-available { background: #d1fae5; color: #065f46; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-success { background: #d1fae5; color: #065f46; }
+        .btn-warning { background: #fef3c7; color: #92400e; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; width: auto; }
+        .btn-full { width: 100%; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
+
+        .maintenance-form {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px dashed #667eea;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">🔧 Техническое обслуживание</div>
+        <div class="nav-links">
+            <a href="/admin" class="nav-link">👥 Пользователи</a>
+            <a href="/admin/cars" class="nav-link">🚗 Автопарк</a>
+            <a href="/" class="nav-link">🏠 На главную</a>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-title">🚗 Автомобили на ТО ({{ cars|length }})</div>
+
+        {% if cars %}
+        <div class="cars-grid">
+            {% for car in cars %}
+            <div class="car-card">
+                <img src="{{ car.image_path or 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&auto=format&fit=crop&q=80' }}"
+                     alt="{{ car.brand }} {{ car.model }}"
+                     class="car-image"
+                     onerror="this.src='https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&auto=format&fit=crop&q=80'">
+
+                <div class="car-body">
+                    <div class="car-name">{{ car.brand }} {{ car.model }}</div>
+                    <div class="car-plate">{{ car.license_plate }}</div>
+                    <div class="car-info">{{ car.year }} г. | {{ car.fuel_type }} | {{ car.transmission }}</div>
+                    <div class="car-info">{{ car.color }} | {{ car.body_type }} | {{ car.seats }} мест</div>
+
+                    <span class="status-badge status-maintenance">🔧 На ТО</span>
+
+                    <form method="POST" action="/admin/car/{{ car.id }}/return-from-maintenance">
+                        <button type="submit" class="btn btn-success btn-full">✅ Вернуть в строй</button>
+                    </form>
+
+                    <a href="/car/{{ car.id }}" class="btn btn-primary btn-full" style="margin-top: 8px;">👁️ Подробнее</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🎉</div>
+            <h3 style="margin-bottom: 10px;">Нет автомобилей на ТО</h3>
+            <p>Все автомобили доступны для аренды</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">📝 Поставить автомобиль на ТО</div>
+
+        <div class="maintenance-form">
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label>Выберите автомобиль</label>
+                    <select name="car_id" required>
+                        <option value="">-- Выберите автомобиль --</option>
+                        <!-- Здесь должен быть список доступных авто -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Описание работ</label>
+                    <textarea name="description" rows="3" placeholder="Опишите необходимые работы..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-warning btn-full">🔧 Поставить на ТО</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

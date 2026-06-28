@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
                              QStackedWidget, QStatusBar, QLabel, QFrame, QApplication,
-                             QPushButton, QMessageBox)
-from PyQt6.QtCore import Qt
+                             QPushButton, QMessageBox, QListWidgetItem)
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon
 import os
 import json
@@ -11,6 +11,8 @@ from utils.theme_manager import get_theme
 from views.notification_view import NotificationWidget
 from utils.signals import global_signals
 from models.user import User, UserRole
+from views.dev_console import DevConsoleDialog
+from utils.logger import app_logger, log_user_action
 
 
 class MainWindow(QMainWindow):
@@ -44,7 +46,6 @@ class MainWindow(QMainWindow):
         self.apply_theme(self.current_theme)
         self.apply_font_size(self.current_font_size)
 
-        # И ТОЛЬКО ПОСЛЕ этого обновляем статус-бар с информацией о пользователе
         if current_user:
             self.status_bar.showMessage(
                 f"✓ {current_user.full_name} ({current_user.role.value}) | AutoRent Pro v1.0"
@@ -112,7 +113,7 @@ class MainWindow(QMainWindow):
             user_info_layout.addWidget(user_role_label)
 
             # Кнопка смены темы (доступна всем ролям)
-            theme_toggle_btn = QPushButton("🌙 Тёмная тема" if self.current_theme == "light" else "☀️ Светлая тема")
+            theme_toggle_btn = QPushButton(" Тёмная тема" if self.current_theme == "light" else "☀️ Светлая тема")
             theme_toggle_btn.setObjectName("theme_toggle_btn")
             theme_toggle_btn.setMinimumHeight(35)
             theme_toggle_btn.clicked.connect(self.toggle_theme)
@@ -122,28 +123,55 @@ class MainWindow(QMainWindow):
 
         # Меню навигации
         self.sidebar = QListWidget()
+
+        # Сохраняем индексы для навигации
+        self._menu_indices = {}
+
+        # Основные пункты меню
         menu_items = [
-            "📊 Дашборд",           # 0
-            "🚗 Автопарк",          # 1
-            "👥 Клиенты",           # 2
-            "📝 Договоры",          # 3
-            "⚠️ Штрафы",            # 4
-            " ТО",                # 5
-            " Уведомления",       # 6
-            "📅 Календарь",         # 7
-            "📈 Статистика",        # 8
-            "📑 Отчёты",            # 9
-            "️ Безопасность",      # 10
-            "⚙️ Настройки",         # 11
+            ("📊 Дашборд", 0),
+            ("🚗 Автопарк", 1),
+            ("👥 Клиенты", 2),
+            ("📝 Договоры", 3),
+            ("⚠️ Штрафы", 4),
+            ("🔧 ТО", 5),
+            ("🔔 Уведомления", 6),
+            (" Календарь", 7),
+            ("📈 Статистика", 8),
+            ("📑 Отчёты", 9),
+            ("🔍 Аудит", 10),
+            ("⚙️ Настройки", 11),
         ]
 
+        # Добавляем основные пункты
+        for item_text, index in menu_items:
+            self.sidebar.addItem(item_text)
+            self._menu_indices[item_text] = index
+
         # Добавляем пункт "Пользователи" только для администраторов
+        users_index = None
         if self.current_user and self.current_user.has_permission('view_users'):
-            menu_items.append("👤 Пользователи")  # 12
+            users_index = self.sidebar.count()
+            self.sidebar.addItem("👤 Пользователи")
+            self._menu_indices["👤 Пользователи"] = users_index
 
-        menu_items.append("ℹ️ О программе")      # 12 или 13
 
-        self.sidebar.addItems(menu_items)
+        # Служебные пункты
+        about_index = self.sidebar.count()
+        self.sidebar.addItem("ℹ️ О программе")
+        self._menu_indices["ℹ️ О программе"] = about_index
+
+        # Добавляем консоль разработчика только для админов
+        dev_console_index = None
+        if self.current_user and self.current_user.role.value in ['superadmin', 'admin']:
+            dev_console_index = self.sidebar.count()
+            self.sidebar.addItem("🐞 Консоль разработчика")
+            self._menu_indices["🐞 Консоль разработчика"] = dev_console_index
+
+        # Сохраняем индексы для использования в on_menu_changed
+        self._about_index = about_index
+        self._dev_console_index = dev_console_index
+        self._users_index = users_index
 
         # Уменьшаем высоту элементов списка
         self.sidebar.setStyleSheet("""
@@ -225,17 +253,28 @@ class MainWindow(QMainWindow):
             self.content_stack.addWidget(SettingsWidget(self, current_user=self.current_user))  # 11
 
             # Добавляем виджет пользователей если есть права
-            if self.current_user and self.current_user.has_permission('view_users'):
-                self.users_widget = UsersWidget(current_user=self.current_user)  # 12
+            if users_index is not None:
+                self.users_widget = UsersWidget(current_user=self.current_user)
                 self.content_stack.addWidget(self.users_widget)
 
-            # Заглушка для "О программе"
-            about_index = len(menu_items) - 1
+            # Заглушка для "О программе" (всегда добавляется)
             about_placeholder = QWidget()
             about_layout = QVBoxLayout(about_placeholder)
             about_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            about_layout.addWidget(QLabel("Нажмите 'О программе' в меню"))
+            about_label = QLabel("Нажмите 'О программе' в меню")
+            about_label.setStyleSheet("font-size: 18px; color: #94a3b8;")
+            about_layout.addWidget(about_label)
             self.content_stack.addWidget(about_placeholder)
+
+            # Заглушка для "Консоль разработчика" (добавляется только если есть пункт меню)
+            if dev_console_index is not None:
+                dev_placeholder = QWidget()
+                dev_layout = QVBoxLayout(dev_placeholder)
+                dev_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                dev_label = QLabel("Нажмите 'Консоль разработчика' в меню")
+                dev_label.setStyleSheet("font-size: 18px; color: #94a3b8;")
+                dev_layout.addWidget(dev_label)
+                self.content_stack.addWidget(dev_placeholder)
 
         except Exception as e:
             import traceback
@@ -293,13 +332,11 @@ class MainWindow(QMainWindow):
         new_theme = "dark" if self.current_theme == "light" else "light"
         self.apply_theme(new_theme)
 
-        # Обновляем текст кнопки смены темы
         for i in range(self.sidebar.count()):
             item = self.sidebar.item(i)
             # Кнопка смены темы находится в user_info_frame, не в sidebar
             pass
 
-        # Находим кнопку и обновляем её текст
         user_info_frame = None
         for widget in self.findChildren(QFrame):
             if widget.objectName() == "user_info_frame":
@@ -314,22 +351,42 @@ class MainWindow(QMainWindow):
 
     def on_menu_changed(self, index: int):
         """Обработка выбора пункта меню."""
-        # Определяем индекс "О программе" (последний пункт)
-        about_index = self.sidebar.count() - 1
-
-        if index == about_index:  # "О программе" — открываем диалог
+        # Проверяем служебные пункты по сохраненным индексам
+        if index == self._about_index:
+            # "О программе" - открываем диалог
             from views.about_dialog import AboutDialog
             dialog = AboutDialog(self)
             dialog.exec()
+            # Возвращаем выделение на предыдущий пункт или на дашборд
             self.sidebar.setCurrentRow(0)
             return
 
-        self.content_stack.setCurrentIndex(index)
-        section_name = self.sidebar.item(index).text()
-        self.status_bar.showMessage(f"📂 Раздел: {section_name}")
+        if self._dev_console_index is not None and index == self._dev_console_index:
+            # "Консоль разработчика" - открываем диалог
+            from views.dev_console import DevConsoleDialog
+            dialog = DevConsoleDialog(self)
+            dialog.exec()
+            # Возвращаем выделение на предыдущий пункт или на дашборд
+            self.sidebar.setCurrentRow(0)
+            return
+
+        # Обычное переключение вкладок
+        if 0 <= index < self.content_stack.count():
+            self.content_stack.setCurrentIndex(index)
+            section_name = self.sidebar.item(index).text()
+            self.status_bar.showMessage(f"📂 Раздел: {section_name}")
 
     def logout(self):
         """Выход из системы."""
+        # Логируем выход
+        log_user_action(
+            user_id=self.current_user.id,
+            username=self.current_user.username,
+            action="LOGOUT",
+            details="User logged out from desktop app"
+        )
+
+        app_logger.info(f"Main window closed by {self.current_user.username}")
         try:
             # Закрываем все базы данных перед выходом
             self.close_all_database_connections()

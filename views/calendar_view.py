@@ -154,7 +154,7 @@ class GanttChartWidget(QWidget):
                 painter.fillRect(self.car_column_width, y, len(days) * self.day_width, self.row_height,
                                  QColor("#F1F5F9"))
 
-            # Название автомобиля (ИСПРАВЛЕНО: рисуем ДО полос, в отдельной области)
+            # Название автомобиля
             painter.setPen(QPen(QColor("#1E293B")))
             painter.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
 

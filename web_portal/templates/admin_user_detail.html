@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователь {{ user.full_name }} - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: #bfdbfe;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, #f0f4ff, #faf5ff);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e0e7ff;
+            margin-bottom: 20px;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .user-role {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .role-superadmin {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .role-admin {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .role-manager {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .role-operator {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .role-user {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .passport-section {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+
+        .edit-section {
+            background: #f0f4ff;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .stats-box {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">👤 {{ user.full_name }}</div>
+        <div class="nav-links">
+            <a href="/admin" class="nav-link">← К списку пользователей</a>
+            <a href="/" class="nav-link">🏠 Главная</a>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <!-- КАРТОЧКА ПОЛЬЗОВАТЕЛЯ -->
+    <div class="section">
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-name">{{ user.full_name }}</div>
+                <div>
+                    {% if user.role.value == 'superadmin' %}
+                    <span class="user-role role-superadmin">👑 Главный Админ</span>
+                    {% elif user.role.value == 'admin' %}
+                    <span class="user-role role-admin">⚙️ Администратор</span>
+                    {% elif user.role.value == 'manager' %}
+                    <span class="user-role role-manager">👨‍💼 Менеджер</span>
+                    {% elif user.role.value == 'operator' %}
+                    <span class="user-role role-operator">🎧 Оператор</span>
+                    {% else %}
+                    <span class="user-role role-user">👤 Пользователь</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Логин</div>
+                    <div class="info-value">{{ user.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ user.email or '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Статус</div>
+                    <div class="info-value">
+                        {% if user.is_active %}
+                        <span class="status-active">✅ Активен</span>
+                        {% else %}
+                        <span class="status-inactive">❌ Заблокирован</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Дата регистрации</div>
+                    <div class="info-value">{{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at else '—'
+                        }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ДЕЙСТВИЯ -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            {% if user.username != 'super' %}
+            <form method="POST" action="/admin/user/{{ user.id }}/toggle" style="flex: 1;">
+                {% if user.is_active %}
+                <button type="submit" class="btn btn-danger btn-full"
+                        onclick="return confirm('Заблокировать пользователя?')">🔒 Заблокировать
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-success btn-full"
+                        onclick="return confirm('Разблокировать пользователя?')">✅ Разблокировать
+                </button>
+                {% endif %}
+            </form>
+            {% endif %}
+            <button class="btn btn-primary btn-full"
+                    onclick="document.getElementById('editForm').style.display='block'">✏️ Редактировать данные
+            </button>
+        </div>
+
+        <!-- ФОРМА РЕДАКТИРОВАНИЯ -->
+        <div id="editForm" style="display: none;" class="edit-section">
+            <h3 style="margin-bottom: 15px; color: #1e293b;">✏️ Редактирование данных пользователя</h3>
+            <form method="POST" action="/admin/user/{{ user.id }}/update">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ФИО *</label>
+                        <input type="text" name="full_name" value="{{ user.full_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email or '' }}">
+                    </div>
+                </div>
+
+                {% if client %}
+                <h4 style="margin: 25px 0 15px; color: #1e293b; font-size: 16px;">📄 Паспортные данные</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Серия паспорта</label>
+                        <input type="text" name="passport_series" value="{{ client.passport_series or '' }}"
+                               maxlength="4" placeholder="0000">
+                    </div>
+                    <div class="form-group">
+                        <label>Номер паспорта</label>
+                        <input type="text" name="passport_number" value="{{ client.passport_number or '' }}"
+                               maxlength="6" placeholder="000000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Дата выдачи</label>
+                        <input type="date" name="passport_issue_date"
+                               value="{{ client.passport_issue_date.strftime('%Y-%m-%d') if client.passport_issue_date else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Кем выдан</label>
+                        <input type="text" name="passport_issue_place" value="{{ client.passport_issue_place or '' }}"
+                               placeholder="УФМС...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Телефон</label>
+                    <input type="tel" name="phone" value="{{ client.phone or '' }}" placeholder="+7 (999) 123-45-67">
+                </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary"
+                            onclick="document.getElementById('editForm').style.display='none'">Отмена
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Сохранить изменения</button>
+                </div>
+            </form>
+
+            <div style="margin-top: 20px; padding: 20px; background: #fef3c7; border-radius: 10px; border: 2px dashed #f59e0b;">
+                <h4 style="margin-bottom: 15px; color: #1e293b;">🔐 Изменить учётные данные</h4>
+                <form method="POST" action="/admin/user/{{ user.id }}/change-credentials">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Новый логин</label>
+                            <input type="text" name="new_username" value="{{ user.username }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Новый пароль (оставьте пустым, чтобы не менять)</label>
+                            <input type="password" name="new_password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning"
+                            onclick="return confirm('Изменить учётные данные пользователя?')">
+                        🔑 Изменить логин/пароль
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАСПОРТНЫЕ ДАННЫЕ КЛИЕНТА (только просмотр) -->
+    {% if client %}
+    <div class="section passport-section">
+        <div class="section-title">📄 Паспортные данные клиента</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Логин</div>
+                <div class="info-value">{{ user.username }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ user.email or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Серия паспорта</div>
+                <div class="info-value">{{ client.passport_series or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Номер паспорта</div>
+                <div class="info-value">{{ client.passport_number or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Дата выдачи</div>
+                <div class="info-value">{{ client.passport_issue_date.strftime('%d.%m.%Y') if client.passport_issue_date
+                    else '—' }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Кем выдан</div>
+                <div class="info-value">{{ client.passport_issue_place or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Телефон</div>
+                <div class="info-value">{{ client.phone or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Дата рождения</div>
+                <div class="info-value">{{ client.date_of_birth.strftime('%d.%m.%Y') if client.date_of_birth else '—'
+                    }}
+                </div>
+            </div>
+            <div class="info-item" style="grid-column: span 2;">
+                <div class="info-label">Адрес</div>
+                <div class="info-value">{{ client.address or '—' }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ИСТОРИЯ АРЕНД -->
+    <div class="section">
+        <div class="section-title">📜 История аренд пользователя</div>
+
+        {% if client_rentals %}
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Автомобиль</th>
+                <th>Дата начала</th>
+                <th>Дата окончания</th>
+                <th>Длительность</th>
+                <th>Стоимость</th>
+                <th>Статус</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for rental in client_rentals %}
+            <tr>
+                <td><strong>#{{ rental.id }}</strong></td>
+                <td><strong>{{ rental.car_info }}</strong></td>
+                <td>{{ rental.start_date }}</td>
+                <td>{{ rental.end_date }}</td>
+                <td>{{ rental.duration }} дн.</td>
+                <td><strong style="color: #667eea;">{{ rental.total_price | int }} ₽</strong></td>
+                <td>
+                    {% if rental.status == 'active' %}
+                    <span style="color: #2563eb; font-weight: 600;">🚗 Активна</span>
+                    {% elif rental.status == 'completed' %}
+                    <span style="color: #059669; font-weight: 600;">✅ Завершена</span>
+                    {% elif rental.status == 'cancelled' %}
+                    <span style="color: #dc2626; font-weight: 600;">❌ Отменена</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="stats-box">
+            <strong>📊 Статистика:</strong>
+            <p style="margin-top: 10px; color: #475569;">
+                Всего аренд: <strong>{{ client_rentals|length }}</strong><br>
+                Активных: <strong>{{ client_rentals|selectattr('status', 'equalto', 'active')|list|length
+                }}</strong><br>
+                Завершённых: <strong>{{ client_rentals|selectattr('status', 'equalto', 'completed')|list|length
+                }}</strong><br>
+                Общая сумма: <strong style="color: #667eea;">{{ client_rentals|sum(attribute='total_price') | int }}
+                ₽</strong>
+            </p>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p style="font-size: 48px; margin-bottom: 10px;">🚗</p>
+            <p>У пользователя пока нет аренд</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Плавное появление формы редактирования
+    document.addEventListener('DOMContentLoaded', function () {
+        const editForm = document.getElementById('editForm');
+        if (editForm) {
+            editForm.style.transition = 'all 0.3s ease';
+        }
+    });
+</script>
+</body>
+</html>

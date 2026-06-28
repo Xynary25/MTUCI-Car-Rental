@@ -308,7 +308,6 @@ class SettingsWidget(QWidget):
                 f"Путь: {result['path']}\n\n"
                 f"Проверьте папку {backup_dir}"
             )
-            # Обновляем статус
             self.update_scheduler_ui()
         else:
             QMessageBox.critical(
@@ -449,7 +448,6 @@ class SettingsWidget(QWidget):
         else:
             self.day_widget.setVisible(False)
 
-        # Обновление статуса
         from utils.backup_scheduler import backup_scheduler
         status = backup_scheduler.get_status()
         if status["running"]:

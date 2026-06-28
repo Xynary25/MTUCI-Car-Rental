@@ -378,7 +378,7 @@ class AgreementWidget(QWidget):
             filepath, _ = QFileDialog.getSaveFileName(
                 self, "Сохранить договоры", "Agreements.pdf", "PDF Files (*.pdf)"
             )
-            if filepath:  # ИСПРАВЛЕНИЕ: проверяем что filepath не пустой
+            if filepath:
                 try:
                     from utils.pdf_generator import generate_multiple_agreements_pdf
 

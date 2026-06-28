@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль - ДрайвКонтроль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .support-card {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .support-card h3 {
+            margin-bottom: 15px;
+        }
+
+        .support-card p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .support-card .btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border-radius: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">👤 Мой профиль</div>
+        <a href="/" class="btn btn-secondary">← На главную</a>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    <!-- ЛИЧНАЯ ИНФОРМАЦИЯ -->
+    <div class="section">
+        <div class="section-title">📋 Личная информация</div>
+        <form method="POST" action="/profile/update">
+            <div class="form-row">
+                <div class="info-box">
+                    <div class="info-label">ФИО</div>
+                    <div class="info-value">{{ client.full_name }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input type="tel" name="phone" value="{{ client.phone or '' }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ client.email or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Адрес регистрации</label>
+                    <input type="text" name="address" value="{{ client.address or '' }}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Дата рождения</label>
+                    <input type="date" name="date_of_birth"
+                           value="{{ client.date_of_birth.strftime('%Y-%m-%d') if client.date_of_birth else '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Дата выдачи паспорта</label>
+                    <input type="date" name="passport_issue_date"
+                           value="{{ client.passport_issue_date.strftime('%Y-%m-%d') if client.passport_issue_date else '' }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Кем выдан паспорт</label>
+                <input type="text" name="passport_issue_place" value="{{ client.passport_issue_place or '' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">💾 Сохранить изменения</button>
+            <a href="/" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+
+    <!-- ПАСПОРТНЫЕ ДАННЫЕ (неизменяемые) -->
+    <div class="section">
+        <div class="section-title">📄 Паспортные данные (неизменяемые)</div>
+        <div class="form-row">
+            <div class="info-box">
+                <div class="info-label">Серия</div>
+                <div class="info-value">{{ client.passport_series or '—' }}</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">Номер</div>
+                <div class="info-value">{{ client.passport_number or '—' }}</div>
+            </div>
+        </div>
+        <div class="form-row" style="margin-top: 15px;">
+            <div class="info-box">
+                <div class="info-label">Дата выдачи</div>
+                <div class="info-value">{{ client.passport_issue_date.strftime('%d.%m.%Y') if client.passport_issue_date
+                    else '—' }}
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">Кем выдан</div>
+                <div class="info-value">{{ client.passport_issue_place or '—' }}</div>
+            </div>
+        </div>
+        <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 10px; border-left: 4px solid #1e40af;">
+            <p style="color: #1e40af; font-size: 13px;">
+                ℹ️ Паспортные данные можно изменить только через обращение в службу поддержки
+            </p>
+        </div>
+    </div>
+
+    <!-- МОИ ОБРАЩЕНИЯ (отдельная секция) -->
+    <div class="section">
+        <div class="section-title">📩 Обращения в поддержку</div>
+
+        <div class="support-card">
+            <h3>📋 Мои обращения в поддержку</h3>
+            <p>Просмотрите историю ваших обращений и ответы поддержки</p>
+            <a href="/user/support-requests" class="btn">
+                📄 Открыть мои обращения
+            </a>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="openSupportModal()" style="margin-top: 15px;">
+            📩 Обратиться в поддержку
+        </button>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ОБРАЩЕНИЯ -->
+<div class="modal" id="supportModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 20px;">📩 Обращение в поддержку</h3>
+        <form method="POST" action="/support/request">
+            <div class="form-group">
+                <label>Тема обращения *</label>
+                <select name="subject" required
+                        style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                    <option value="">Выберите тему</option>
+                    <option value="Изменение паспортных данных">Изменение паспортных данных</option>
+                    <option value="Изменение телефона">Изменение телефона</option>
+                    <option value="Изменение email">Изменение email</option>
+                    <option value="Другое">Другое</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Описание проблемы *</label>
+                <textarea name="description" rows="5" required
+                          placeholder="Опишите вашу проблему подробно..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeSupportModal()">Отмена</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">📤 Отправить обращение</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openSupportModal() {
+        const modal = document.getElementById('supportModal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSupportModal() {
+        const modal = document.getElementById('supportModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('supportModal').addEventListener('click', function (e) {
+        if (e.target === this) closeSupportModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('supportModal');
+            if (modal.style.display === 'flex') closeSupportModal();
+        }
+    });
+</script>
+</body>
+</html>

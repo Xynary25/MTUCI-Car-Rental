@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запросы на возврат - ДрайвКонтроль</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #1e293b; }
+        .nav-links { display: flex; gap: 10px; }
+        .nav-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-link:hover { background: #bfdbfe; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #dc2626; }
+        .alert-warning { background: #fef3c7; color: #92400e; }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label { color: #64748b; font-size: 14px; margin-top: 5px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { font-weight: 600; font-size: 13px; text-transform: uppercase; }
+        tbody tr:hover { background: #f8fafc; }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-success { background: #d1fae5; color: #065f46; }
+        .btn-danger { background: #fee2e2; color: #dc2626; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title { font-size: 20px; font-weight: bold; color: #1e293b; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">🔄 Запросы на возврат</div>
+        <div class="nav-links">
+            <a href="/admin" class="nav-link">👥 Пользователи</a>
+            <a href="/admin/cars" class="nav-link">🚗 Автопарк</a>
+            <a href="/" class="nav-link"> Главная</a>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ return_requests|length }}</div>
+            <div class="stat-label">Всего запросов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ return_requests|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+            <div class="stat-label"> Ожидают</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ return_requests|selectattr('status', 'equalto', 'approved')|list|length }}</div>
+            <div class="stat-label">✅ Подтверждено</div>
+        </div>
+    </div>
+
+    <!-- Таблица запросов -->
+    <div class="section">
+        <div class="section-title"> Все запросы на возврат</div>
+
+        {% if return_requests %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Клиент</th>
+                    <th>Автомобиль</th>
+                    <th>Период аренды</th>
+                    <th>Дата запроса</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in return_requests %}
+                <tr>
+                    <td><strong>#{{ req.id }}</strong></td>
+                    <td>{{ req.client_name }}</td>
+                    <td>{{ req.car_info }}</td>
+                    <td>{{ req.rental_period }}</td>
+                    <td>{{ req.request_date }}</td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                            <span class="status-pending">⏳ Ожидает</span>
+                        {% elif req.status == 'approved' %}
+                            <span class="status-approved">✅ Подтвержден</span>
+                        {% elif req.status == 'rejected' %}
+                            <span class="status-rejected">❌ Отклонен</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                            <form method="POST" action="/admin/return-requests/{{ req.id }}/approve" style="display: inline;">
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Подтвердить возврат?')">
+                                    ✅ Подтвердить
+                                </button>
+                            </form>
+                            <button class="btn btn-danger" onclick="openRejectModal({{ req.id }})">
+                                ❌ Отклонить
+                            </button>
+                        {% else %}
+                            <span style="color: #64748b;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p style="font-size: 48px; margin-bottom: 10px;">📭</p>
+            <p>Нет запросов на возврат</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно отклонения -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">❌ Отклонить запрос</div>
+            <button class="close-modal" onclick="closeRejectModal()">&times;</button>
+        </div>
+        <form method="POST" action="" id="rejectForm">
+            <div class="form-group">
+                <label>Причина отклонения</label>
+                <textarea name="comment" rows="4" placeholder="Укажите причину..." required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-danger" onclick="closeRejectModal()">Отмена</button>
+                <button type="submit" class="btn btn-success" style="flex: 1;">Отклонить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openRejectModal(requestId) {
+        document.getElementById('rejectForm').action = '/admin/return-requests/' + requestId + '/reject';
+        document.getElementById('rejectModal').classList.add('active');
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModal').classList.remove('active');
+        document.getElementById('rejectForm').reset();
+    }
+
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+        if (e.target === this) closeRejectModal();
+    });
+</script>
+</body>
+</html>

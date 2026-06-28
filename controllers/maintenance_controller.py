@@ -61,52 +61,6 @@ class MaintenanceController:
             for m in records
         ]
 
-    def add_maintenance(self, car_id: int, maintenance_type: MaintenanceType,
-                        maintenance_date: date, description: str = None,
-                        mileage: int = None, next_mileage: int = None,
-                        next_maintenance_date: date = None, cost: int = None,
-                        performed_by: str = None, notes: str = None) -> Dict[str, Any]:
-        """Добавление новой записи ТО."""
-        car = self.db.query(Car).filter(Car.id == car_id).first()
-        if not car:
-            return {"success": False, "error": "Автомобиль не найден"}
-
-        new_maintenance = Maintenance(
-            car_id=car_id,
-            maintenance_type=maintenance_type,
-            maintenance_date=maintenance_date,
-            description=description.strip() if description else None,
-            mileage=mileage,
-            next_mileage=next_mileage,
-            next_maintenance_date=next_maintenance_date,
-            cost=cost,
-            status=MaintenanceStatus.SCHEDULED,
-            performed_by=performed_by.strip() if performed_by else None,
-            notes=notes.strip() if notes else None
-        )
-
-        try:
-            self.db.add(new_maintenance)
-            self.db.commit()
-            self.db.refresh(new_maintenance)
-
-            # Логирование
-            from utils.system_utils import log_action
-            from models.audit_log import ActionType
-            log_action(
-                db=self.db,
-                action_type=ActionType.CREATE,
-                entity_name="Maintenance",
-                description=f"Запланировано {maintenance_type.value} для {car.brand} {car.model}",
-                entity_id=new_maintenance.id,
-                user_info="Admin"
-            )
-
-            return {"success": True, "data": new_maintenance}
-        except Exception as e:
-            self.db.rollback()
-            return {"success": False, "error": f"Ошибка БД: {str(e)}"}
-
     def complete_maintenance(self, maintenance_id: int) -> Dict[str, Any]:
         """Отметить ТО как выполненное."""
         maintenance = self.db.query(Maintenance).filter(Maintenance.id == maintenance_id).first()
@@ -195,9 +149,9 @@ class MaintenanceController:
             "total_cost": total_cost,
             "by_type": [
                 {
-                    "type": bt[0].value,  # ← ИСПРАВЛЕНО: обращение по индексу
-                    "count": bt[1],  # ← ИСПРАВЛЕНО
-                    "total_cost": bt[2] or 0  # ← ИСПРАВЛЕНО
+                    "type": bt[0].value,
+                    "count": bt[1],
+                    "total_cost": bt[2] or 0
                 }
                 for bt in by_type
             ]

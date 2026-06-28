@@ -17,7 +17,6 @@ def migrate_database():
     engine = create_engine(DB_URL)
 
     with engine.connect() as conn:
-        # Проверка и добавление новых колонок
         columns_to_add = [
             ("cars", "year", "INTEGER"),
             ("cars", "transmission", "VARCHAR(20)"),

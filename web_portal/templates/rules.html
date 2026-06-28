@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правила и договоры - ДрайвКонтроль</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #1e293b; }
+        .back-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .back-link:hover { background: #bfdbfe; }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .rule-item {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .rule-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .rule-text {
+            color: #475569;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .contract-box {
+            background: linear-gradient(135deg, #f0f4ff, #faf5ff);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px dashed #667eea;
+            margin: 20px 0;
+        }
+        .contract-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        .contract-text {
+            color: #475569;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        .contract-text ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .contract-text li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">📋 Правила и договоры</div>
+        <a href="/" class="back-link">← На главную</a>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📜 Договор аренды транспортного средства</div>
+
+        <div class="contract-box">
+            <div class="contract-title">ОБЩИЕ ПОЛОЖЕНИЯ</div>
+            <div class="contract-text">
+                <p>1.1. Настоящий договор регулирует отношения между Арендодателем (ООО «ДрайвКонтроль») и Арендатором (физическое лицо) по предоставлению транспортных средств во временное владение и пользование.</p>
+                <p>1.2. Арендатор подтверждает, что ознакомлен с условиями договора и принимает их безоговорочно.</p>
+                <p>1.3. Минимальный срок аренды составляет 1 сутки (24 часа).</p>
+            </div>
+        </div>
+
+        <div class="contract-box">
+            <div class="contract-title">ПРАВА И ОБЯЗАННОСТИ СТОРОН</div>
+            <div class="contract-text">
+                <p><strong>Арендодатель обязуется:</strong></p>
+                <ul>
+                    <li>Предоставить Арендатору исправное транспортное средство</li>
+                    <li>Обеспечить полную документацию на автомобиль</li>
+                    <li>Производить техническое обслуживание автомобиля</li>
+                </ul>
+
+                <p style="margin-top: 15px;"><strong>Арендатор обязуется:</strong></p>
+                <ul>
+                    <li>Использовать автомобиль только в личных целях</li>
+                    <li>Не передавать автомобиль третьим лицам</li>
+                    <li>Своевременно оплачивать аренду и штрафы</li>
+                    <li>Возвращать автомобиль в чистом виде</li>
+                    <li>Немедленно сообщать о любых повреждениях или ДТП</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 Правила эксплуатации автомобиля</div>
+
+        <div class="rule-item">
+            <div class="rule-title">1. Требования к водителю</div>
+            <div class="rule-text">
+                <p>1.1. Арендатор должен иметь действующее водительское удостоверение категории B или выше.</p>
+                <p>1.2. Минимальный стаж вождения - 2 года.</p>
+                <p>1.3. Минимальный возраст - 21 год.</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">2. Запрещается</div>
+            <div class="rule-text">
+                <p>2.1. Использовать автомобиль для участия в гонках, соревнованиях.</p>
+                <p>2.2. Передавать управление автомобилем лицам, не указанным в договоре.</p>
+                <p>2.3. Курить в салоне автомобиля.</p>
+                <p>2.4. Перевозить опасные грузы, животных без специальной переноски.</p>
+                <p>2.5. Выезжать за пределы Российской Федерации без письменного разрешения.</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">3. Топливо</div>
+            <div class="rule-text">
+                <p>3.1. Автомобиль выдается с полным баком топлива.</p>
+                <p>3.2. Возвращать автомобиль необходимо с полным баком.</p>
+                <p>3.3. При возврате с неполным баком взимается плата за дозаправку + сервисный сбор 500 ₽.</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">4. Мойка и чистота</div>
+            <div class="rule-text">
+                <p>4.1. Автомобиль выдается чистым.</p>
+                <p>4.2. При сильном загрязнении салона взимается штраф от 2000 ₽.</p>
+                <p>4.3. За курение в салоне - штраф 5000 ₽.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">💰 Система штрафов и платежей</div>
+
+        <div class="rule-item">
+            <div class="rule-title">1. Просрочка возврата</div>
+            <div class="rule-text">
+                <p>1.1. За каждый час просрочки - двойная стоимость часа аренды.</p>
+                <p>1.2. При просрочке более 24 часов - двойная суточная стоимость за каждый день.</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">2. Повреждения автомобиля</div>
+            <div class="rule-text">
+                <p>2.1. Мелкие царапины (до 5 см) - от 3000 ₽.</p>
+                <p>2.2. Повреждение бампера - от 10000 ₽.</p>
+                <p>2.3. Повреждение двери - от 8000 ₽.</p>
+                <p>2.4. Повреждение стекла - от 15000 ₽.</p>
+                <p>2.5. Повреждение салона - от 5000 ₽.</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">3. Прочие штрафы</div>
+            <div class="rule-text">
+                <p>3.1. Штрафы ГИБДД - полная сумма штрафа + комиссия 500 ₽.</p>
+                <p>3.2. Эвакуация автомобиля - полная стоимость + 2000 ₽.</p>
+                <p>3.3. Потеря ключей - от 15000 ₽.</p>
+                <p>3.4. Загрязнение салона - от 2000 ₽.</p>
+                <p>3.5. Курение в салоне - 5000 ₽.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🛡️ Страхование и ответственность</div>
+
+        <div class="rule-item">
+            <div class="rule-title">1. Страховое покрытие</div>
+            <div class="rule-text">
+                <p>1.1. Все автомобили застрахованы по ОСАГО.</p>
+                <p>1.2. Возможно оформление КАСКО за дополнительную плату (500 ₽/сутки).</p>
+                <p>1.3. Франшиза при ДТП - 30000 ₽ (без КАСКО).</p>
+            </div>
+        </div>
+
+        <div class="rule-item">
+            <div class="rule-title">2. Действия при ДТП</div>
+            <div class="rule-text">
+                <p>2.1. Немедленно сообщить в ГИБДД по телефону 112.</p>
+                <p>2.2. Сообщить в компанию по телефону +7 (XXX) XXX-XX-XX.</p>
+                <p>2.3. Не перемещать автомобиль до приезда ГИБДД.</p>
+                <p>2.4. Сфотографировать место происшествия со всех ракурсов.</p>
+                <p>2.5. Получить копию протокола ГИБДД.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📞 Контакты и поддержка</div>
+
+        <div class="contract-box">
+            <div class="contract-text">
+                <p><strong>Телефон горячей линии:</strong> +7 (XXX) XXX-XX-XX (круглосуточно)</p>
+                <p><strong>Email:</strong> support@drivecontrol.ru</p>
+                <p><strong>Адрес офиса:</strong> г. Москва, ул. Примерная, д. 1</p>
+                <p><strong>Режим работы:</strong> Пн-Пт: 9:00 - 20:00, Сб-Вс: 10:00 - 18:00</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

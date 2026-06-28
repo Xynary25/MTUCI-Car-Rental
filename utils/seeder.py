@@ -198,7 +198,6 @@ def seed_database(db: Session):
         db.commit()
         app_logger.info("Добавлены договоры аренды.")
 
-    # Добавление тестовых расходов
     if db.query(Expense).count() == 0:
         car1 = db.query(Car).filter(Car.license_plate == "А777АА777").first()
         car4 = db.query(Car).filter(Car.license_plate == "М888ММ777").first()
@@ -279,7 +278,6 @@ def seed_database(db: Session):
         db.commit()
         app_logger.info("Добавлены тестовые штрафы.")
 
-    # Добавление тестовых записей ТО
     if db.query(Maintenance).count() == 0:
         cars = db.query(Car).all()
 

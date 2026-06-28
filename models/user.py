@@ -13,6 +13,7 @@ class UserRole(enum.Enum):
     ADMIN = "admin"  # Полный доступ
     MANAGER = "manager"  # Управление договорами, клиентами, авто
     OPERATOR = "operator"  # Только просмотр и создание договоров
+    USER = "user" #Пользователь
 
 
 class User(Base):
@@ -119,6 +120,12 @@ class User(Base):
                 'view_dashboard', 'view_cars', 'view_clients', 'view_agreements',
                 'view_notifications', 'view_about',
                 'view_maintenance', 'view_penalties',
+                'create_agreement',
+                'change_password'
+            ],
+            UserRole.USER: [
+                'view_dashboard', 'view_cars', 'view_clients', 'view_agreements',
+                'view_notifications', 'view_about',
                 'create_agreement',
                 'change_password'
             ]

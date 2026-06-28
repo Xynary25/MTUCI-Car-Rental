@@ -86,7 +86,6 @@ def cleanup_old_backups(backup_dir: str, max_backups: int = 10):
     # Сортировка по времени создания (новые первые)
     backup_files.sort(key=lambda x: x["time"], reverse=True)
 
-    # Удаление старых бэкапов
     if len(backup_files) > max_backups:
         for backup in backup_files[max_backups:]:
             try:

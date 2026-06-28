@@ -222,9 +222,9 @@ class LoginDialog(QDialog):
         password = self.password_input.text()
 
         logger.info("=" * 60)
-        logger.info("ПОПЫТКА ВХОДА В СИСТЕМУ")
-        logger.info(f"Введенный логин: '{username}'")
-        logger.info(f"Введенный пароль: '{'***' if password else 'ПУСТО'}' (длина: {len(password)})")
+        logger.info("🔐 ПОПЫТКА ВХОДА В СИСТЕМУ")
+        logger.info(f"  Введенный логин: '{username}'")
+        logger.info(f"  Введенный пароль: '{'***' if password else 'ПУСТО'}' (длина: {len(password)})")
         logger.info("=" * 60)
 
         if not username or not password:
@@ -232,8 +232,9 @@ class LoginDialog(QDialog):
             return
 
         try:
+            from utils.logger import log_security_event
+
             logger.info("Вызываем auth_service.authenticate()...")
-            # ИСПРАВЛЕНО: не передаем self.db, так как он уже в auth_service
             user = self.auth_service.authenticate(username, password)
 
             if user:
@@ -242,7 +243,13 @@ class LoginDialog(QDialog):
                 logger.info(f"Активен: {user.is_active}")
 
                 if not user.is_active:
-                    logger.warning(f"Попытка входа деактивированного пользователя: {username}")
+                    logger.warning(f"❌ Аккаунт заблокирован: {username}")
+                    log_security_event(
+                        event_type="LOGIN_ATTEMPT",
+                        username=username,
+                        details="Account disabled",
+                        success=False
+                    )
                     QMessageBox.critical(
                         self, "Аккаунт отключен",
                         "⛔ Ваш аккаунт деактивирован.\n\n"
@@ -250,11 +257,29 @@ class LoginDialog(QDialog):
                     )
                     return
 
+                # ✅ УСПЕШНЫЙ ВХОД — логируем здесь!
+                logger.info(f"✅ Аутентификация успешна: {username}")
+                logger.info(f"   Роль: {user.role.value}")
+                logger.info(f"   ID: {user.id}")
+
+                log_security_event(
+                    event_type="LOGIN",
+                    username=username,
+                    details=f"Role: {user.role.value}, ID: {user.id}",
+                    success=True
+                )
+
                 self.current_user = user
                 logger.info("Вход выполнен успешно!")
                 self.accept()
             else:
-                logger.error(f"Аутентификация НЕУСПЕШНА для пользователя: {username}")
+                logger.warning(f"❌ Неверные учётные данные: {username}")
+                log_security_event(
+                    event_type="LOGIN_ATTEMPT",
+                    username=username,
+                    details="Invalid credentials",
+                    success=False
+                )
 
                 # Дополнительная диагностика
                 logger.info("Диагностика:")
@@ -278,10 +303,10 @@ class LoginDialog(QDialog):
 
                 QMessageBox.critical(self, "Ошибка", "Неверный логин или пароль")
         except Exception as e:
+            logger.error(f"❌ Ошибка аутентификации: {e}")
             import traceback
-            logger.error(f"Исключение при аутентификации: {str(e)}")
-            logger.error(traceback.format_exc())
-            QMessageBox.critical(self, "Ошибка", f"Ошибка авторизации:\n{str(e)}")
+            traceback.print_exc()
+            QMessageBox.critical(self, "Ошибка", f"Ошибка входа: {str(e)}")
 
     def get_user(self) -> User:
         """Получить авторизованного пользователя."""

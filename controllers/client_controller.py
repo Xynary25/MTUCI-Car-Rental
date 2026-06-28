@@ -46,7 +46,6 @@ class ClientController:
             self.db.commit()
             self.db.refresh(new_client)
 
-            # ЛОГИРОВАНИЕ: Добавление клиента
             log_action(
                 db=self.db,
                 action_type=ActionType.CREATE,
@@ -78,7 +77,6 @@ class ClientController:
             self.db.delete(client)
             self.db.commit()
 
-            # ЛОГИРОВАНИЕ: Удаление клиента
             log_action(
                 db=self.db,
                 action_type=ActionType.DELETE,

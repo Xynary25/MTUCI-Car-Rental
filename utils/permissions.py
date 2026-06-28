@@ -28,7 +28,6 @@ class Permission(Enum):
     EDIT_CLIENT = "edit_client"
     EDIT_AGREEMENT = "edit_agreement"
 
-    # Удаление
     DELETE_CAR = "delete_car"
     DELETE_CLIENT = "delete_client"
     DELETE_AGREEMENT = "delete_agreement"

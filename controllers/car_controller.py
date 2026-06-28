@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 from utils.system_utils import log_action
 from models.audit_log import ActionType
 from utils.image_utils import find_car_image
+from utils.logger import app_logger, log_database_action
 
 class CarController:
     def __init__(self, db_session: Session):
@@ -42,16 +43,6 @@ class CarController:
                                                                                                        0) <= 0:
             return {"success": False, "error": "Марка, модель, гос. номер обязательны, а ставка должна быть > 0"}
 
-        # === УМНАЯ ЗАГРУЗКА ФОТО ===
-        image_path = data.get("image_path")
-        if not image_path:
-            # Пытаемся найти фото автоматически
-            image_path = find_car_image(
-                license_plate=data.get("license_plate"),
-                brand=data.get("brand"),
-                model=data.get("model")
-            )
-
         new_car = Car(
             brand=data["brand"].strip(),
             model=data["model"].strip(),
@@ -74,7 +65,6 @@ class CarController:
             self.db.commit()
             self.db.refresh(new_car)
 
-            # ЛОГИРОВАНИЕ: Добавление автомобиля
             log_action(
                 db=self.db,
                 action_type=ActionType.CREATE,
@@ -84,11 +74,27 @@ class CarController:
                 user_info="Admin"
             )
 
+            log_database_action(
+                action="INSERT",
+                table="cars",
+                record_id=new_car.id,
+                user="Admin",
+                details=f"Added car: {new_car.brand} {new_car.model}"
+            )
+
+            app_logger.info(f"Car added: {new_car.license_plate}")
             return {"success": True, "data": new_car}
         except IntegrityError:
             self.db.rollback()
             return {"success": False, "error": "Автомобиль с таким гос. номером уже существует"}
         except Exception as e:
+            log_database_action(
+                action="INSERT",
+                table="cars",
+                user="Admin",
+                details=f"Failed: {str(e)}"
+            )
+            app_logger.error(f"Failed to add car: {e}")
             self.db.rollback()
             return {"success": False, "error": f"Ошибка БД: {str(e)}"}
 
@@ -97,6 +103,16 @@ class CarController:
         car = self.db.query(Car).filter(Car.id == car_id).first()
         if not car:
             return {"success": False, "error": "Автомобиль не найден"}
+
+            # === ЛОГИРОВАНИЕ ===
+        print(f"\n{'=' * 60}")
+        print(f"💾 ОБНОВЛЕНИЕ АВТОМОБИЛЯ ID={car_id}")
+        print(f"{'=' * 60}")
+        print(f"📋 Текущие данные из БД:")
+        print(f"   image_path: '{car.image_path}'")
+        print(f"\n📋 Новые данные из формы:")
+        print(f"   image_path: '{data.get('image_path')}'")
+        print(f"{'=' * 60}\n")
 
         # Сохраняем старые значения для логирования
         old_brand = car.brand
@@ -116,13 +132,34 @@ class CarController:
         car.seats = data.get("seats", car.seats)
         car.daily_rate = data["daily_rate"]
         car.description = data.get("description", car.description)
-        car.image_path = data.get("image_path", car.image_path)
+
+        # === УМНАЯ ЗАГРУЗКА ФОТО ===
+        print(f"\n ПРОВЕРКА УМНОЙ ЗАГРУЗКИ ФОТО В CONTROLLER")
+        print(f"   data.get('image_path') = '{data.get('image_path')}'")
+
+        # === УМНАЯ ЗАГРУЗКА ФОТО ===
+        from utils.path_utils import find_image_in_images_dir
+
+        if data.get("image_path"):
+            # Если фото задано вручную - используем его
+            car.image_path = data["image_path"]
+        else:
+            # Пытаемся найти фото автоматически в папке images/
+            auto_photo = find_image_in_images_dir(
+                license_plate=data.get("license_plate", car.license_plate),
+                brand=data.get("brand", car.brand),
+                model=data.get("model", car.model)
+            )
+            if auto_photo:
+                car.image_path = auto_photo
+                print(f"✅ Автоматически найдено фото: {auto_photo}")
+            # Если не нашли - оставляем старое фото
+
         car.is_available = bool(data.get("is_available", car.is_available))
 
         try:
             self.db.commit()
 
-            # ЛОГИРОВАНИЕ: Обновление автомобиля
             log_action(
                 db=self.db,
                 action_type=ActionType.UPDATE,
@@ -151,7 +188,6 @@ class CarController:
             self.db.delete(car)
             self.db.commit()
 
-            # ЛОГИРОВАНИЕ: Удаление автомобиля
             log_action(
                 db=self.db,
                 action_type=ActionType.DELETE,
