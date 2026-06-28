@@ -1,193 +1,46 @@
-# =============================================================================
-# PYTHON
-# =============================================================================
-
 # Виртуальное окружение
 .venv/
 venv/
 env/
-ENV/
-.venv
 
-# Установленные пакеты
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
-# Дистрибутивы / упаковка
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.env.local
-.env.*.local
-
-# Vagrant
-.vagrant/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# =============================================================================
-# ДАННЫЕ ПРИЛОЖЕНИЯ
-# =============================================================================
-
-# База данных SQLite
+# База данных (содержит реальные данные)
 *.db
-*.sqlite
-*.sqlite3
 rental.db
 
-# Резервные копии БД
-backups/
-*.db.bak
-*.db.backup
+# Переменные окружения (пароли!)
+.env
 
-# Логи приложения
+# Логи
 logs/
 *.log
-app.log
+web_portal.log
 
-# Настройки пользователя
-settings.json
+# Резервные копии
+backups/
 
-# Фотографии автомобилей
-#images/
-#*.jpg
-#*.jpeg
-#*.png
-#*.bmp
-#*.gif
-#!icon.png
-
-# Экспортированные отчёты
+# Экспорты
 exports/
-*.csv
-*.pdf
-*.xlsx
+
+# Настройки IDE
+.idea/
+.vscode/
+*.iml
+
+# Кэш Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
 # Временные файлы
-tmp/
-temp/
 *.tmp
+*.bak
+db_operation_pending.json
 
-# =============================================================================
-# ОС
-# =============================================================================
+# Статические файлы (генерируются автоматически)
+static/support_attachments/
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# macOS
+# OS файлы
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.Spotlight-V100
-.Trashes
-
-# Linux
-*~
-.directory
-
-# =============================================================================
-# СЕКРЕТЫ И КЛЮЧИ
-# =============================================================================
-
-# Ключи шифрования
-*.key
-*.pem
-secret.key
-
-# Сертификаты
-*.cert
-*.crt
-
-# =============================================================================
-# ДОКУМЕНТАЦИЯ (опционально)
-# =============================================================================
-
-# Отчёты по практике
-# docs/reports/
-# *.docx
-# *.doc
+Thumbs.db
+desktop.ini
