@@ -179,7 +179,7 @@ class CarDialog(QDialog):
         from utils.path_utils import url_path_to_absolute, file_exists, find_image_in_images_dir
 
         # Если image_path задан из БД, конвертируем его
-        if self.image_path:
+        if self.image_path and car_data:
             absolute_path = url_path_to_absolute(self.image_path)
             print(f"🔍 Конвертация пути:")
             print(f"   Исходный: {self.image_path}")
@@ -190,7 +190,7 @@ class CarDialog(QDialog):
                 self.image_path = absolute_path
             else:
                 # Файл не найден по пути из БД, ищем в images/
-                print(f"️ Файл не найден, ищем в images/")
+                print(f"⚠️ Файл не найден, ищем в images/")
                 auto_photo = find_image_in_images_dir(
                     license_plate=car_data.get("license_plate"),
                     brand=car_data.get("brand"),
@@ -202,7 +202,7 @@ class CarDialog(QDialog):
                 else:
                     self.image_path = None
                     print(f"❌ Фото не найдено")
-        else:
+        elif car_data:
             # image_path не задан, ищем автоматически
             auto_photo = find_image_in_images_dir(
                 license_plate=car_data.get("license_plate"),
