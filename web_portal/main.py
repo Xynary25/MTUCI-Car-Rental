@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Depends, Form, Cookie, Request, Uplo
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from urllib.parse import quote, unquote
 from database import get_db, init_db
@@ -1214,171 +1215,17 @@ def admin_reports(
         db: Session = Depends(get_db)
 ):
     """Страница отчётов для админа."""
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
+    if user_role not in ["admin", "superadmin", "manager"]:
+        raise HTTPException(status_code=403, detail="Доступ запрещён")
 
-    # Общая статистика
+    # Базовая статистика
     total_cars = db.query(Car).count()
     available_cars = db.query(Car).filter(Car.is_available == True).count()
     total_clients = db.query(Client).count()
     total_agreements = db.query(RentalAgreement).count()
-    active_agreements = db.query(RentalAgreement).filter(RentalAgreement.status == AgreementStatus.ACTIVE).count()
-    total_revenue = db.query(RentalAgreement).filter(
-        RentalAgreement.status == AgreementStatus.COMPLETED
-    ).with_entities(func.sum(RentalAgreement.total_cost)).scalar() or 0
-
-    # Доход за текущий месяц
-    current_month = date.today().replace(day=1)
-    monthly_revenue = db.query(RentalAgreement).filter(
-        RentalAgreement.status == AgreementStatus.COMPLETED,
-        RentalAgreement.end_date >= current_month
-    ).with_entities(func.sum(RentalAgreement.total_cost)).scalar() or 0
-
-    # Популярные автомобили
-    popular_cars = db.query(
-        Car.id, Car.brand, Car.model,
-        func.count(RentalAgreement.id).label('rental_count')
-    ).join(RentalAgreement).group_by(Car.id).order_by(
-        func.count(RentalAgreement.id).desc()
-    ).limit(5).all()
-
-    return templates.TemplateResponse(
-        request,
-        "admin_reports.html",
-        {
-            "total_cars": total_cars,
-            "available_cars": available_cars,
-            "total_clients": total_clients,
-            "total_agreements": total_agreements,
-            "active_agreements": active_agreements,
-            "total_revenue": int(total_revenue),
-            "monthly_revenue": int(monthly_revenue),
-            "popular_cars": popular_cars
-        }
-    )
-
-
-# ============================================================================
-# ТЕХНИЧЕСКОЕ ОБСЛУЖИВАНИЕ (для админа)
-# ============================================================================
-
-@app.get("/admin/maintenance", response_class=HTMLResponse)
-def admin_maintenance(
-        request: Request,
-        user_role: str = Cookie(default=None),
-        db: Session = Depends(get_db)
-):
-    """Страница управления ТО."""
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
-
-    # Получаем автомобили на ТО
-    cars_on_maintenance = db.query(Car).filter(Car.is_available == False).all()
-
-    return templates.TemplateResponse(
-        request,
-        "admin_maintenance.html",
-        {"cars": cars_on_maintenance}
-    )
-
-
-@app.post("/admin/car/{car_id}/maintenance")
-def add_car_maintenance(
-        car_id: int,
-        description: str = Form(...),
-        user_role: str = Cookie(...),
-        db: Session = Depends(get_db)
-):
-    """Постановка автомобиля на ТО."""
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
-
-    car = db.query(Car).filter(Car.id == car_id).first()
-    if not car:
-        raise HTTPException(status_code=404)
-
-    car.is_available = False
-    db.commit()
-
-    return RedirectResponse(url="/admin/maintenance?message=✅ Автомобиль поставлен на ТО", status_code=303)
-
-
-@app.post("/admin/car/{car_id}/return-from-maintenance")
-def return_car_from_maintenance(
-        car_id: int,
-        user_role: str = Cookie(...),
-        db: Session = Depends(get_db)
-):
-    """Возврат автомобиля с ТО."""
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
-
-    car = db.query(Car).filter(Car.id == car_id).first()
-    if not car:
-        raise HTTPException(status_code=404)
-
-    car.is_available = True
-    db.commit()
-
-    return RedirectResponse(url="/admin/maintenance?message=✅ Автомобиль возвращён в строй", status_code=303)
-
-
-# ============================================================================
-# ПЛАТЕЖИ (для клиента и админа)
-# ============================================================================
-
-@app.get("/payments", response_class=HTMLResponse)
-def payments_page(
-        request: Request,
-        user_role: str = Cookie(default=None),
-        user_id: str = Cookie(default=None),
-        db: Session = Depends(get_db)
-):
-    """Страница платежей."""
-    if not user_role:
-        raise HTTPException(status_code=403)
-
-    if user_role == "client":
-        # Показываем платежи клиента
-        client = db.query(Client).filter(Client.id == int(user_id)).first()
-        if not client:
-            raise HTTPException(status_code=404)
-
-        agreements = db.query(RentalAgreement).filter(RentalAgreement.client_id == client.id).all()
-    else:
-        # Админ видит все платежи
-        agreements = db.query(RentalAgreement).all()
-
-    return templates.TemplateResponse(
-        request,
-        "payments.html",
-        {"agreements": agreements, "role": user_role}
-    )
-
-
-# ============================================================================
-# ОТЧЁТЫ И СТАТИСТИКА
-# ============================================================================
-
-from sqlalchemy import func
-
-
-@app.get("/admin/reports", response_class=HTMLResponse)
-def admin_reports(
-        request: Request,
-        user_role: str = Cookie(default=None),
-        db: Session = Depends(get_db)
-):
-    """Страница отчётов для админа."""
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
-
-    # Общая статистика
-    total_cars = db.query(Car).count()
-    available_cars = db.query(Car).filter(Car.is_available == True).count()
-    total_clients = db.query(Client).count()
-    total_agreements = db.query(RentalAgreement).count()
-    active_agreements = db.query(RentalAgreement).filter(RentalAgreement.status == AgreementStatus.ACTIVE).count()
+    active_agreements = db.query(RentalAgreement).filter(
+        RentalAgreement.status == AgreementStatus.ACTIVE
+    ).count()
 
     total_revenue = db.query(func.sum(RentalAgreement.total_cost)).scalar() or 0
 
@@ -1397,9 +1244,28 @@ def admin_reports(
         func.count(RentalAgreement.id).desc()
     ).limit(5).all()
 
+    # ✅ ИСПРАВЛЕНИЕ: Добавляем pending_count и другие недостающие переменные
+    from models.return_request import ReturnRequest, ReturnRequestStatus
+    from models.support_request import SupportRequest, SupportRequestStatus
+    from models.penalty import Penalty
+
+    pending_count = db.query(ReturnRequest).filter(
+        ReturnRequest.status == ReturnRequestStatus.PENDING
+    ).count()
+
+    pending_support_count = db.query(SupportRequest).filter(
+        SupportRequest.status == SupportRequestStatus.PENDING
+    ).count()
+
+    # Статистика штрафов
+    total_penalties = db.query(Penalty).count()
+    unpaid_penalties = db.query(Penalty).filter(Penalty.is_paid == False).count()
+    paid_penalties_amount = db.query(func.sum(Penalty.amount)).filter(
+        Penalty.is_paid == True
+    ).scalar() or 0
+
     return templates.TemplateResponse(
-        request,
-        "admin_reports.html",
+        request, "admin_reports.html",
         {
             "total_cars": total_cars,
             "available_cars": available_cars,
@@ -1408,10 +1274,15 @@ def admin_reports(
             "active_agreements": active_agreements,
             "total_revenue": int(total_revenue),
             "monthly_revenue": int(monthly_revenue),
-            "popular_cars": popular_cars
+            "popular_cars": popular_cars,
+            "pending_count": pending_count,
+            "pending_support_count": pending_support_count,
+            "total_penalties": total_penalties,
+            "unpaid_penalties": unpaid_penalties,
+            "paid_penalties_amount": int(paid_penalties_amount),
+            "role": user_role
         }
     )
-
 
 # ============================================================================
 # ТЕХНИЧЕСКОЕ ОБСЛУЖИВАНИЕ
@@ -1466,7 +1337,6 @@ def add_car_maintenance(
         status_code=303
     )
 
-
 @app.post("/admin/car/{car_id}/return-from-maintenance")
 def return_car_from_maintenance(
         car_id: int,
@@ -1488,7 +1358,6 @@ def return_car_from_maintenance(
         url="/admin/maintenance?message=✅ Автомобиль возвращён в строй",
         status_code=303
     )
-
 
 # ============================================================================
 # ПЛАТЕЖИ
@@ -1539,7 +1408,6 @@ def payments_page(
             "role": user_role
         }
     )
-
 
 # ============================================================================
 # ЗАПРОСЫ НА ВОЗВРАТ (УВЕДОМЛЕНИЯ В СУ)
@@ -1710,44 +1578,6 @@ def approve_return_request(
 
     return RedirectResponse(
         url="/admin/return-requests?message=✅ Возврат подтвержден. Аренда завершена.",
-        status_code=303
-    )
-
-
-@app.post("/admin/return-requests/{request_id}/reject")
-def reject_return_request(
-        request_id: int,
-        comment: str = Form(...),
-        user_role: str = Cookie(...),
-        db: Session = Depends(get_db)
-):
-    """Отклонение запроса на возврат (админ)."""
-    try:
-        from return_request import ReturnRequest, ReturnRequestStatus
-    except ImportError:
-        raise HTTPException(status_code=500, detail="Модель ReturnRequest не найдена")
-
-    if user_role != "admin":
-        raise HTTPException(status_code=403)
-
-    return_req = db.query(ReturnRequest).filter(ReturnRequest.id == request_id).first()
-    if not return_req:
-        raise HTTPException(status_code=404)
-
-    if return_req.status != ReturnRequestStatus.PENDING:
-        return RedirectResponse(
-            url="/admin/return-requests?error=❌ Запрос уже обработан",
-            status_code=303
-        )
-
-    return_req.status = ReturnRequestStatus.REJECTED
-    return_req.admin_decision_date = datetime.utcnow()
-    return_req.admin_comment = comment
-
-    db.commit()
-
-    return RedirectResponse(
-        url="/admin/return-requests?message=❌ Запрос отклонен. Пользователь может создать новый запрос.",
         status_code=303
     )
 
@@ -2617,5 +2447,7 @@ if __name__ == "__main__":
     print("🔐 Админ-панель: http://127.0.0.1:8000/admin")
     print(" Управление автопарком: http://127.0.0.1:8000/admin/cars")
     print("📋 Правила и договоры: http://127.0.0.1:8000/rules")
+    print("Техническое обслуживание","http://127.0.0.1:8000/admin/maintenance")
+    print("Отчеты и статистика для админов","http://127.0.0.1:8000/admin/reports")
     print("Скрытая ссылка с логами для разработчика:", "http://127.0.0.1:8000/dev-logs")
     uvicorn.run(app, host="127.0.0.1", port=8000)

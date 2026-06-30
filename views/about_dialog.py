@@ -552,6 +552,8 @@ class AboutDialog(QDialog):
             ("Управление автопарком:", "http://127.0.0.1:8000/admin/cars"),
             ("Правила и договоры:", "http://127.0.0.1:8000/rules"),
             ("Скрытая ссылка с логами для разработчика:", "http://127.0.0.1:8000/dev-logs"),
+            ("Отчеты и статистика для админов","http://127.0.0.1:8000/admin/reports"),
+            ("Техническое обслуживание", "http://127.0.0.1:8000/admin/maintenance"),
             ("База данных:", "Общая с десктопной СУ (rental.db)"),
             ("Статические файлы:", "/static/car_images/, /static/support_attachments/"),
         ]
@@ -1491,6 +1493,9 @@ class AboutDialog(QDialog):
         urls_layout.addWidget(self._make_info_row("Правила и договоры:", "http://127.0.0.1:8000/rules"))
         urls_layout.addWidget(
             self._make_info_row("Скрытая ссылка с логами для разработчика:", "http://127.0.0.1:8000/admin/dev-logs"))
+        urls_layout.addWidget(self._make_info_row("Отчеты и статистика для админов","http://127.0.0.1:8000/admin/reports"))
+        urls_layout.addWidget(self._make_info_row("Техническое обслуживание","http://127.0.0.1:8000/admin/maintenance"))
+
 
         layout.addWidget(urls_group)
 
