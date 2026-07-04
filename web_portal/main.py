@@ -2449,30 +2449,47 @@ def dev_logs_page(
         user_role: str = Cookie(default=None)
 ):
     """Страница просмотра логов (только для админов)."""
-    from utils.dev_console import LOG_DIR
-
     if user_role not in ["admin", "superadmin"]:
         raise HTTPException(status_code=403, detail="Доступ только для администраторов")
 
-    # Читаем последний лог-файл
-    log_files = sorted(LOG_DIR.glob("dev_*.log"), reverse=True)
-
     logs = []
-    if log_files:
-        latest_log = log_files[0]
-        with open(latest_log, 'r', encoding='utf-8') as f:
-            for line in f.readlines()[-200:]:  # Последние 200 строк
-                parts = line.strip().split(' | ', 2)
-                if len(parts) >= 3:
-                    time_str = parts[0].strip()
-                    level = parts[1].strip()
-                    message = parts[2].strip()
+    # Ищем лог-файл веб-портала
+    log_file = PROJECT_ROOT / "logs" / "web_portal.log"
 
+    if log_file.exists():
+        with open(log_file, 'r', encoding='utf-8') as f:
+            # Читаем последние 200 строк
+            for line in f.readlines()[-200:]:
+                line = line.strip()
+                if not line:
+                    continue
+
+                # Парсим формат: INFO:     127.0.0.1:58080 - "GET / HTTP/1.1" 200 OK
+                if ' - ' in line:
+                    parts = line.split(' - ', 2)
+                    if len(parts) >= 3:
+                        time_str = parts[0].strip()
+                        level = parts[1].strip()
+                        message = parts[2].strip()
+
+                        logs.append({
+                            "time": time_str,
+                            "level": level,
+                            "message": message
+                        })
+                else:
+                    # Для строк без разделителя
                     logs.append({
-                        "time": time_str,
-                        "level": level,
-                        "message": message
+                        "time": "",
+                        "level": "INFO",
+                        "message": line
                     })
+    else:
+        logs.append({
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "level": "WARNING",
+            "message": f"Файл логов не найден: {log_file.absolute()}"
+        })
 
     return templates.TemplateResponse(
         request,
