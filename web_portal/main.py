@@ -7,6 +7,8 @@ from fastapi import FastAPI, HTTPException, Depends, Form, Cookie, Request, Uplo
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.utils import get_openapi
+from fastapi.openapi.docs import get_swagger_ui_html
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from urllib.parse import quote, unquote
@@ -36,7 +38,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="ДрайвКонтроль - Управление Автопрокатом")
+app = FastAPI(
+    title="ДрайвКонтроль - Управление Автопрокатом",
+    version="0.1.0",
+    openapi_version="3.0.3",
+    openapi_url="/openapi.json"
+)
 templates = Jinja2Templates(directory="templates")
 
 # Путь к корню проекта
@@ -63,6 +70,38 @@ if IMAGES_DIR.exists():
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
+# Кастомизация OpenAPI схемы
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        routes=app.routes,
+    )
+
+    # Исправляем ошибки с contentMediaType
+    if "components" in openapi_schema and "schemas" in openapi_schema["components"]:
+        schemas = openapi_schema["components"]["schemas"]
+        for schema_name, schema in schemas.items():
+            if "properties" in schema:
+                for prop_name, prop in schema["properties"].items():
+                    # Для файловых полей
+                    if isinstance(prop, dict) and "contentMediaType" in prop:
+                        del prop["contentMediaType"]
+                        prop["format"] = "binary"
+                    # Для массивов файлов
+                    if isinstance(prop, dict) and "items" in prop:
+                        if isinstance(prop["items"], dict) and "contentMediaType" in prop["items"]:
+                            del prop["items"]["contentMediaType"]
+                            prop["items"]["format"] = "binary"
+
+    app.openapi_schema = openapi_schema
+    return openapi_schema
+
+
+app.openapi = custom_openapi
 
 def allowed_file(filename):
     """Проверка расширения файла."""
@@ -2450,4 +2489,5 @@ if __name__ == "__main__":
     print("Техническое обслуживание","http://127.0.0.1:8000/admin/maintenance")
     print("Отчеты и статистика для админов","http://127.0.0.1:8000/admin/reports")
     print("Скрытая ссылка с логами для разработчика:", "http://127.0.0.1:8000/dev-logs")
+    print("Документация OpenAPI:", "http://127.0.0.1:8000/docs")
     uvicorn.run(app, host="127.0.0.1", port=8000)
